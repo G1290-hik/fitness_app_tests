@@ -21,34 +21,14 @@ public final class GeneratedPluginRegistrant {
       Log.e(TAG, "Error registering plugin device_info_plus, dev.fluttercommunity.plus.device_info.DeviceInfoPlusPlugin", e);
     }
     try {
-      flutterEngine.getPlugins().add(new com.pravera.flutter_foreground_task.FlutterForegroundTaskPlugin());
-    } catch (Exception e) {
-      Log.e(TAG, "Error registering plugin flutter_foreground_task, com.pravera.flutter_foreground_task.FlutterForegroundTaskPlugin", e);
-    }
-    try {
       flutterEngine.getPlugins().add(new cachet.plugins.health.HealthPlugin());
     } catch (Exception e) {
       Log.e(TAG, "Error registering plugin health, cachet.plugins.health.HealthPlugin", e);
     }
     try {
-      flutterEngine.getPlugins().add(new com.example.pedometer.PedometerPlugin());
-    } catch (Exception e) {
-      Log.e(TAG, "Error registering plugin pedometer, com.example.pedometer.PedometerPlugin", e);
-    }
-    try {
       flutterEngine.getPlugins().add(new com.baseflow.permissionhandler.PermissionHandlerPlugin());
     } catch (Exception e) {
       Log.e(TAG, "Error registering plugin permission_handler_android, com.baseflow.permissionhandler.PermissionHandlerPlugin", e);
-    }
-    try {
-      flutterEngine.getPlugins().add(new io.flutter.plugins.sharedpreferences.SharedPreferencesPlugin());
-    } catch (Exception e) {
-      Log.e(TAG, "Error registering plugin shared_preferences_android, io.flutter.plugins.sharedpreferences.SharedPreferencesPlugin", e);
-    }
-    try {
-      flutterEngine.getPlugins().add(new dev.fluttercommunity.workmanager.WorkmanagerPlugin());
-    } catch (Exception e) {
-      Log.e(TAG, "Error registering plugin workmanager, dev.fluttercommunity.workmanager.WorkmanagerPlugin", e);
     }
   }
 }

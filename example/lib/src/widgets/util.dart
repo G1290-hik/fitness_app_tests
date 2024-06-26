@@ -43,14 +43,32 @@ const List<HealthDataType> dataTypesIOS = [
   HealthDataType.HEADACHE_MODERATE,
   HealthDataType.HEADACHE_SEVERE,
   HealthDataType.HEADACHE_UNSPECIFIED,
+
+  // note that a phone cannot write these ECG-based types - only read them
   HealthDataType.ELECTROCARDIOGRAM,
   HealthDataType.HIGH_HEART_RATE_EVENT,
   HealthDataType.IRREGULAR_HEART_RATE_EVENT,
   HealthDataType.LOW_HEART_RATE_EVENT,
   HealthDataType.RESTING_HEART_RATE,
   HealthDataType.WALKING_HEART_RATE,
+
   HealthDataType.NUTRITION,
 ];
+
+enum AppState {
+  DATA_NOT_FETCHED,
+  FETCHING_DATA,
+  DATA_READY,
+  NO_DATA,
+  AUTHORIZED,
+  AUTH_NOT_GRANTED,
+  DATA_ADDED,
+  DATA_DELETED,
+  DATA_NOT_ADDED,
+  DATA_NOT_DELETED,
+  STEPS_READY,
+  HEALTH_CONNECT_STATUS,
+}
 
 /// List of data types available on Android.
 ///
@@ -88,17 +106,51 @@ const List<HealthDataType> dataTypesAndroid = [
   HealthDataType.TOTAL_CALORIES_BURNED,
 ];
 
-enum AppState {
-  DATA_NOT_FETCHED,
-  FETCHING_DATA,
-  DATA_READY,
-  NO_DATA,
-  AUTHORIZED,
-  AUTH_NOT_GRANTED,
-  DATA_ADDED,
-  DATA_DELETED,
-  DATA_NOT_ADDED,
-  DATA_NOT_DELETED,
-  STEPS_READY,
-  HEALTH_CONNECT_STATUS,
-}
+/// Grouped data types for Android in a fitness app style
+const Map<String, List<HealthDataType>> groupedDataTypesAndroid = {
+  'Steps': [
+    HealthDataType.STEPS,
+  ],
+  'Activity Tracking': [
+    HealthDataType.STEPS,
+    HealthDataType.DISTANCE_DELTA,
+    // HealthDataType.FLIGHTS_CLIMBED,
+    // HealthDataType.WORKOUT,
+    // HealthDataType.TOTAL_CALORIES_BURNED,
+  ],
+  'Calories Burnt': [
+    HealthDataType.ACTIVE_ENERGY_BURNED,
+    HealthDataType.BASAL_ENERGY_BURNED,
+    HealthDataType.TOTAL_CALORIES_BURNED,
+    // HealthDataType.NUTRITION,
+    // HealthDataType.WATER,
+  ],
+  'Heart Health': [
+    HealthDataType.HEART_RATE,
+    HealthDataType.RESTING_HEART_RATE,
+    HealthDataType.BLOOD_PRESSURE_SYSTOLIC,
+    HealthDataType.BLOOD_PRESSURE_DIASTOLIC,
+  ],
+  'Biometrics': [
+    HealthDataType.HEIGHT,
+    HealthDataType.WEIGHT,
+    HealthDataType.BODY_FAT_PERCENTAGE,
+    HealthDataType.BODY_TEMPERATURE,
+  ],
+  'Blood Pressure': [
+    HealthDataType.BLOOD_PRESSURE_DIASTOLIC,
+    HealthDataType.BLOOD_PRESSURE_SYSTOLIC,
+  ],
+  'Blood Oxygen': [
+    HealthDataType.BLOOD_GLUCOSE,
+    HealthDataType.BLOOD_OXYGEN,
+  ],
+  'Sleep': [
+    HealthDataType.SLEEP_AWAKE,
+    HealthDataType.SLEEP_ASLEEP,
+    HealthDataType.SLEEP_LIGHT,
+    HealthDataType.SLEEP_DEEP,
+    HealthDataType.SLEEP_REM,
+    HealthDataType.SLEEP_SESSION,
+  ],
+};
