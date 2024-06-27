@@ -1,22 +1,31 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:health_example/src/utils/theme.dart';
+import 'package:intl/intl.dart';
 
-class HeartRateChart extends StatelessWidget {
+class CandleStickChart extends StatelessWidget {
   final List<double> minHeartRates;
   final List<double> maxHeartRates;
-  final List<String> days;
-//TODO - Add gradients instead of static rod colors and add it to the constructor
-  HeartRateChart({
+  final List<DateTime> dates;
+  final bool is7DayChart;
+  final double barWidth;
+  final double fontSize;
+  final double interval;
+
+  CandleStickChart({
+    required this.fontSize,
+    required this.interval,
+    required this.barWidth,
     required this.minHeartRates,
     required this.maxHeartRates,
-    required this.days,
+    required this.dates,
+    required this.is7DayChart,
   });
 
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 1.2,
+      aspectRatio: is7DayChart ? 1 : 1.2,
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -33,11 +42,11 @@ class HeartRateChart extends StatelessWidget {
                   tooltipPadding: EdgeInsets.all(8),
                   tooltipMargin: 8,
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                    String day = days[group.x.toInt()];
+                    DateTime date = dates[group.x.toInt()];
                     double minValue = minHeartRates[group.x.toInt()];
                     double maxValue = maxHeartRates[group.x.toInt()];
                     return BarTooltipItem(
-                      '$day\nMax HR: $maxValue\nMin HR: $minValue',
+                      '${DateFormat('d MMM').format(date)}\nMax HR: $maxValue\nMin HR: $minValue',
                       TextStyle(
                           color: AppColors.mainTextColor1,
                           fontWeight: FontWeight.bold),
@@ -61,27 +70,39 @@ class HeartRateChart extends StatelessWidget {
                 show: true,
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
+                    interval: interval,
                     showTitles: true,
                     getTitlesWidget: (double value, TitleMeta meta) {
-                      return SideTitleWidget(
-                        axisSide: meta.axisSide,
-                        child: Text(days[value.toInt()],
+                      int index = value.toInt();
+                      if (index % interval == 0 &&
+                          index >= 0 &&
+                          index < dates.length) {
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          child: Text(
+                            DateFormat('d MMM').format(dates[index]),
                             style: TextStyle(
                               color: AppColors.mainTextColor2,
-                            )),
-                      );
+                              fontSize: fontSize,
+                            ),
+                          ),
+                        );
+                      }
+                      return Container();
                     },
-                    reservedSize: 28,
+                    reservedSize: 45,
                   ),
                 ),
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
                     getTitlesWidget: (double value, TitleMeta meta) {
-                      return Text(value.toInt().toString(),
-                          style: TextStyle(
-                            color: AppColors.mainTextColor2,
-                          ));
+                      return Text(
+                        value.toInt().toString(),
+                        style: TextStyle(
+                          color: AppColors.mainTextColor2,
+                        ),
+                      );
                     },
                     reservedSize: 40,
                   ),
@@ -94,31 +115,38 @@ class HeartRateChart extends StatelessWidget {
                 ),
               ),
               borderData: FlBorderData(
-                  show: true,
-                  border: Border.all(
-                      width: 2,
-                      color: AppColors.contentColorWhite.withOpacity(0.1))),
+                show: true,
+                border: Border.all(
+                    width: 2,
+                    color: AppColors.contentColorWhite.withOpacity(0.1)),
+              ),
               barGroups: List.generate(minHeartRates.length, (index) {
                 return BarChartGroupData(
                   x: index,
                   barRods: [
                     BarChartRodData(
                       toY: maxHeartRates[index],
-                      color: Colors.redAccent,
-                      width: 22,
-                      borderRadius: BorderRadius.circular(100),
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.contentColorRed,
+                          AppColors.contentColorOrange,
+                          AppColors.contentColorYellow,
+                        ],
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                      ),
+                      width: barWidth,
+                      borderRadius: BorderRadius.circular(6),
                       rodStackItems: [
                         BarChartRodStackItem(
                           minHeartRates[index],
                           minHeartRates[index],
-                          Colors
-                              .transparent, // Transparent part from 0 to minHeartRates
+                          Colors.transparent,
                         ),
                         BarChartRodStackItem(
                           minHeartRates[index],
                           maxHeartRates[index],
-                          Colors
-                              .redAccent, // Actual visible part from minHeartRates to maxHeartRates
+                          Colors.redAccent,
                         ),
                       ],
                     ),
