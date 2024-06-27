@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:health_example/src/service/service.dart';
 import 'package:health_example/src/utils/theme.dart';
-import 'package:health_example/src/widgets/candlestick_widget.dart';
+import 'package:health_example/src/widgets/heart_rate_candlestick_widget.dart';
 import 'package:health_example/src/widgets/min_max_grid_widget.dart';
 
 class HeartRateDetailScreen extends StatefulWidget {
@@ -44,6 +44,9 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
     List<double> maxHeartRates30Days = [];
     List<DateTime> dates30Days = [];
 
+    double overallMinHeartRate = double.infinity;
+    double overallMaxHeartRate = double.negativeInfinity;
+
     // Fetch 7 days of data
     for (int i = 0; i < 7; i++) {
       DateTime dayStart = startTime7Days.add(Duration(days: i));
@@ -54,17 +57,16 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
       double maxHeartRate =
           await _healthService.getMaxHeartRate(dayStart, dayEnd);
 
-      if (minHeartRate > 0) {
-        minHeartRates7Days.add(minHeartRate);
-      } else {
-        minHeartRates7Days.add(0); // Add 0 if no data is available
-      }
-      if (maxHeartRate > 0) {
-        maxHeartRates7Days.add(maxHeartRate);
-      } else {
-        maxHeartRates7Days.add(0); // Add 0 if no data is available
-      }
+      minHeartRates7Days.add(minHeartRate > 0 ? minHeartRate : 0);
+      maxHeartRates7Days.add(maxHeartRate > 0 ? maxHeartRate : 0);
       dates7Days.add(dayStart);
+
+      if (minHeartRate > 0 && minHeartRate < overallMinHeartRate) {
+        overallMinHeartRate = minHeartRate;
+      }
+      if (maxHeartRate > 0 && maxHeartRate > overallMaxHeartRate) {
+        overallMaxHeartRate = maxHeartRate;
+      }
     }
 
     // Fetch 30 days of data
@@ -77,17 +79,16 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
       double maxHeartRate =
           await _healthService.getMaxHeartRate(dayStart, dayEnd);
 
-      if (minHeartRate > 0) {
-        minHeartRates30Days.add(minHeartRate);
-      } else {
-        minHeartRates30Days.add(0); // Add 0 if no data is available
-      }
-      if (maxHeartRate > 0) {
-        maxHeartRates30Days.add(maxHeartRate);
-      } else {
-        maxHeartRates30Days.add(0); // Add 0 if no data is available
-      }
+      minHeartRates30Days.add(minHeartRate > 0 ? minHeartRate : 0);
+      maxHeartRates30Days.add(maxHeartRate > 0 ? maxHeartRate : 0);
       dates30Days.add(dayStart);
+
+      if (minHeartRate > 0 && minHeartRate < overallMinHeartRate) {
+        overallMinHeartRate = minHeartRate;
+      }
+      if (maxHeartRate > 0 && maxHeartRate > overallMaxHeartRate) {
+        overallMaxHeartRate = maxHeartRate;
+      }
     }
 
     setState(() {
@@ -100,6 +101,9 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
       _dates30Days = dates30Days;
 
       _isLoading = false;
+
+      _maxHeartRate = overallMaxHeartRate;
+      _minHeartRate = overallMinHeartRate;
     });
 
     // Debugging output
@@ -110,6 +114,8 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
     print('Min heart rates 30 days: $_minHeartRates30Days');
     print('Max heart rates 30 days: $_maxHeartRates30Days');
     print('Dates 30 days: $_dates30Days');
+    print('Overall max heart rate: $_maxHeartRate');
+    print('Overall min heart rate: $_minHeartRate');
   }
 
   @override
@@ -175,8 +181,14 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
                       ),
                     ),
                     MinMaxGridWidget(
-                        maxHeartRate: _maxHeartRate,
-                        minHeartRate: _minHeartRate),
+                      maxHeartRate: _maxHeartRate,
+                      minHeartRate: _minHeartRate,
+                      showHeartRate: true,
+                      minDiastolic: null,
+                      minSystolic: null,
+                      maxDiastolic: null,
+                      maxSystolic: null,
+                    ),
                   ],
                 ),
               ),
@@ -219,6 +231,7 @@ class DaySummary extends StatelessWidget {
             is7DayChart: false,
           ),
         ),
+        //TODO - Add a See History Card ,which leads to a page with history chunked in the manner of the detail_view.
       ],
     );
   }
