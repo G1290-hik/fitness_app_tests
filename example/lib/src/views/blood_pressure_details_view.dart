@@ -187,7 +187,7 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen> {
                           //1-day chart
                           Placeholder(),
                           // 7-day chart
-                          DaySummary(
+                          BloodPressureDaySummary(
                             minSystolic: _minSystolic7Days,
                             maxSystolic: _maxSystolic7Days,
                             minDiastolic: _minDiastolic7Days,
@@ -198,7 +198,7 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen> {
                             fontSize: 8,
                           ),
                           // 30-day chart
-                          DaySummary(
+                          BloodPressureDaySummary(
                             minSystolic: _minSystolic30Days,
                             maxSystolic: _maxSystolic30Days,
                             minDiastolic: _minDiastolic30Days,
@@ -228,8 +228,8 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen> {
   }
 }
 
-class DaySummary extends StatelessWidget {
-  const DaySummary({
+class BloodPressureDaySummary extends StatelessWidget {
+  const BloodPressureDaySummary({
     super.key,
     required List<double> minSystolic,
     required List<double> maxSystolic,

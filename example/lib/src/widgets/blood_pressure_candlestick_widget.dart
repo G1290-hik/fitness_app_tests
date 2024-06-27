@@ -55,7 +55,8 @@ class BloodPressureCandleStickChart extends StatelessWidget {
                       '${DateFormat('d MMM').format(date)}\nMax Systolic: $maxSystolicValue mmHg\nMin Systolic: $minSystolicValue mmHg\nMax Diastolic: $maxDiastolicValue mmHg\nMin Diastolic: $minDiastolicValue mmHg',
                       TextStyle(
                           color: AppColors.mainTextColor1,
-                          fontWeight: FontWeight.bold),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 8),
                     );
                   },
                 ),
