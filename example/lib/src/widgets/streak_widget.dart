@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:health_example/src/utils/theme.dart';
 import 'package:health_example/src/widgets/alternate_circular_graph.dart';
-import 'package:health_example/src/widgets/theme.dart';
 
 class StreakWidget extends StatelessWidget {
   const StreakWidget({

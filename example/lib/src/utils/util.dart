@@ -112,7 +112,7 @@ const Map<String, List<HealthDataType>> groupedDataTypesAndroid = {
     HealthDataType.STEPS,
   ],
   'Activity Tracking': [
-    HealthDataType.STEPS,
+    // HealthDataType.STEPS,
     HealthDataType.DISTANCE_DELTA,
     // HealthDataType.FLIGHTS_CLIMBED,
     // HealthDataType.WORKOUT,
@@ -128,8 +128,8 @@ const Map<String, List<HealthDataType>> groupedDataTypesAndroid = {
   'Heart Health': [
     HealthDataType.HEART_RATE,
     HealthDataType.RESTING_HEART_RATE,
-    HealthDataType.BLOOD_PRESSURE_SYSTOLIC,
-    HealthDataType.BLOOD_PRESSURE_DIASTOLIC,
+    // HealthDataType.BLOOD_PRESSURE_SYSTOLIC,
+    // HealthDataType.BLOOD_PRESSURE_DIASTOLIC,
   ],
   'Biometrics': [
     HealthDataType.HEIGHT,

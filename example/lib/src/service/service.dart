@@ -1,9 +1,8 @@
-// health_service.dart
 import 'dart:io';
 
 import 'package:carp_serializable/carp_serializable.dart';
 import 'package:health/health.dart';
-import 'package:health_example/src/widgets/util.dart';
+import 'package:health_example/src/utils/util.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class HealthService {
@@ -55,25 +54,19 @@ class HealthService {
     return 'Health Connect Status: $status';
   }
 
-  Future<List<HealthDataPoint>> fetchData(
-      List<HealthDataType> dataTypes) async {
-    final now = DateTime.now();
-    final yesterday = now.subtract(Duration(hours: 24));
-
+  Future<List<HealthDataPoint>> fetchData(List<HealthDataType> dataTypes,
+      DateTime startTime, DateTime endTime) async {
     _healthDataList.clear();
 
     try {
       List<HealthDataPoint> healthData = await Health().getHealthDataFromTypes(
         types: dataTypes,
-        startTime: yesterday,
-        endTime: now,
+        startTime: startTime,
+        endTime: endTime,
       );
 
-      print('Total number of data points: ${healthData.length}. '
-          '${healthData.length > 100 ? 'Only showing the first 100.' : ''}');
-
-      _healthDataList.addAll(
-          (healthData.length < 100) ? healthData : healthData.sublist(0, 100));
+      print('Total number of data points: ${healthData.length}. ');
+      _healthDataList.addAll(healthData);
     } catch (error) {
       print("Exception in getHealthDataFromTypes: $error");
     }
@@ -85,108 +78,106 @@ class HealthService {
     return _healthDataList;
   }
 
-  Future<bool> addData() async {
-    final now = DateTime.now();
-    final earlier = now.subtract(Duration(minutes: 20));
+  double aggregateHealthDataPoints(
+      List<HealthDataPoint> dataPoints, Function(List<double>) aggregator) {
+    List<double> values = dataPoints.map((e) {
+      if (e.value is NumericHealthValue) {
+        return (e.value as NumericHealthValue).numericValue.toDouble();
+      } else {
+        throw TypeError();
+      }
+    }).toList();
 
-    bool success = true;
+    if (values.isEmpty) {
+      return 0.0; // Return 0.0 if there are no values
+    }
 
-    success &= await Health().writeHealthData(
-        value: 1.925,
-        type: HealthDataType.HEIGHT,
-        startTime: earlier,
-        endTime: now);
-    success &= await Health().writeHealthData(
-        value: 90, type: HealthDataType.WEIGHT, startTime: now);
-    success &= await Health().writeHealthData(
-        value: 90,
-        type: HealthDataType.HEART_RATE,
-        startTime: earlier,
-        endTime: now);
-    success &= await Health().writeHealthData(
-        value: 90,
-        type: HealthDataType.STEPS,
-        startTime: earlier,
-        endTime: now);
-    success &= await Health().writeHealthData(
-        value: 200,
-        type: HealthDataType.ACTIVE_ENERGY_BURNED,
-        startTime: earlier,
-        endTime: now);
-    success &= await Health().writeHealthData(
-        value: 70,
-        type: HealthDataType.HEART_RATE,
-        startTime: earlier,
-        endTime: now);
-    success &= await Health().writeHealthData(
-        value: 37,
-        type: HealthDataType.BODY_TEMPERATURE,
-        startTime: earlier,
-        endTime: now);
-    success &= await Health().writeHealthData(
-        value: 105,
-        type: HealthDataType.BLOOD_GLUCOSE,
-        startTime: earlier,
-        endTime: now);
-    success &= await Health().writeHealthData(
-        value: 1.8,
-        type: HealthDataType.WATER,
-        startTime: earlier,
-        endTime: now);
+    return aggregator(values);
+  }
 
-    success &= await Health().writeHealthData(
-        value: 0.0,
-        type: HealthDataType.SLEEP_REM,
-        startTime: earlier,
-        endTime: now);
-    success &= await Health().writeHealthData(
-        value: 0.0,
-        type: HealthDataType.SLEEP_ASLEEP,
-        startTime: earlier,
-        endTime: now);
-    success &= await Health().writeHealthData(
-        value: 0.0,
-        type: HealthDataType.SLEEP_AWAKE,
-        startTime: earlier,
-        endTime: now);
-    success &= await Health().writeHealthData(
-        value: 0.0,
-        type: HealthDataType.SLEEP_DEEP,
-        startTime: earlier,
-        endTime: now);
+  // Aggregation methods for each data type
+  Future<double> aggregateData(
+      List<HealthDataType> dataTypes,
+      DateTime startTime,
+      DateTime endTime,
+      Function(List<double>) aggregator) async {
+    List<HealthDataPoint> dataPoints =
+        await fetchData(dataTypes, startTime, endTime);
+    return aggregateHealthDataPoints(dataPoints, aggregator);
+  }
 
-    success &= await Health().writeBloodOxygen(
-      saturation: 98,
-      startTime: earlier,
-      endTime: now,
-      flowRate: 1.0,
-    );
-    success &= await Health().writeWorkoutData(
-      activityType: HealthWorkoutActivityType.AMERICAN_FOOTBALL,
-      title: "Random workout name that shows up in Health Connect",
-      start: now.subtract(Duration(minutes: 15)),
-      end: now,
-      totalDistance: 2430,
-      totalEnergyBurned: 400,
-    );
-    success &= await Health().writeBloodPressure(
-      systolic: 90,
-      diastolic: 80,
-      startTime: now,
-    );
-    success &= await Health().writeMeal(
-      mealType: MealType.SNACK,
-      startTime: earlier,
-      endTime: now,
-      caloriesConsumed: 1000,
-      carbohydrates: 50,
-      protein: 25,
-      fatTotal: 50,
-      name: "Banana",
-      caffeine: 0.002,
-    );
+  // Specific aggregation functions
+  Future<double> getTotalSteps(DateTime startTime, DateTime endTime) async {
+    return await aggregateData([HealthDataType.STEPS], startTime, endTime,
+        (values) => values.reduce((a, b) => a + b));
+  }
 
-    return success;
+  Future<double> getAvgHeartRate(DateTime startTime, DateTime endTime) async {
+    return await aggregateData([HealthDataType.STEPS], startTime, endTime,
+        (values) => values.reduce((a, b) => (a + b) / values.length));
+  }
+
+  Future<double> getMinHeartRate(DateTime startTime, DateTime endTime) async {
+    return await aggregateData([HealthDataType.HEART_RATE], startTime, endTime,
+        (values) => values.reduce((a, b) => a < b ? a : b));
+  }
+
+  Future<double> getMaxHeartRate(DateTime startTime, DateTime endTime) async {
+    return await aggregateData([HealthDataType.HEART_RATE], startTime, endTime,
+        (values) => values.reduce((a, b) => a > b ? a : b));
+  }
+
+  Future<double> getCaloriesBurnt(DateTime startTime, DateTime endTime) async {
+    return await aggregateData([HealthDataType.TOTAL_CALORIES_BURNED],
+        startTime, endTime, (values) => values.reduce((a, b) => a + b));
+  }
+
+  Future<double> getMaxSystolicBloodPressure(
+      DateTime startTime, DateTime endTime) async {
+    return await aggregateData(
+        [HealthDataType.BLOOD_PRESSURE_SYSTOLIC],
+        startTime,
+        endTime,
+        (values) =>
+            values.isEmpty ? 0 : values.reduce((a, b) => a > b ? a : b));
+  }
+
+  Future<double> getMaxDiastolicBloodPressure(
+      DateTime startTime, DateTime endTime) async {
+    return await aggregateData(
+        [HealthDataType.BLOOD_PRESSURE_DIASTOLIC],
+        startTime,
+        endTime,
+        (values) =>
+            values.isEmpty ? 0 : values.reduce((a, b) => a > b ? a : b));
+  }
+
+  Future<double> getMinSystolicBloodPressure(
+      DateTime startTime, DateTime endTime) async {
+    return await aggregateData(
+        [HealthDataType.BLOOD_PRESSURE_SYSTOLIC],
+        startTime,
+        endTime,
+        (values) =>
+            values.isEmpty ? 0 : values.reduce((a, b) => a < b ? a : b));
+  }
+
+  Future<double> getMinDiastolicBloodPressure(
+      DateTime startTime, DateTime endTime) async {
+    return await aggregateData(
+        [HealthDataType.BLOOD_PRESSURE_DIASTOLIC],
+        startTime,
+        endTime,
+        (values) =>
+            values.isEmpty ? 0 : values.reduce((a, b) => a < b ? a : b));
+  }
+
+  Future<double> getDistance(DateTime startTime, DateTime endTime) async {
+    return await aggregateData(
+        [HealthDataType.DISTANCE_DELTA],
+        startTime,
+        endTime,
+        (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b) / 1000);
   }
 
   Future<bool> deleteData() async {
@@ -194,7 +185,7 @@ class HealthService {
     final earlier = now.subtract(Duration(hours: 24));
 
     bool success = true;
-    for (HealthDataType type in types) {
+    for (HealthDataType type in dataTypesAndroid) {
       success &= await Health().delete(
         type: type,
         startTime: earlier,

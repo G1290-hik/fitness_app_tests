@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geekyants_flutter_gauges/geekyants_flutter_gauges.dart';
-import 'package:health_example/src/widgets/theme.dart';
+import 'package:health_example/src/utils/theme.dart';
 
 class BMIWidget extends StatelessWidget {
   const BMIWidget({

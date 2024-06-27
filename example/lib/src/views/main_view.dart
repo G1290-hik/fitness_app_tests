@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:health_example/src/utils/theme.dart';
 import 'package:health_example/src/widgets/bmi_indicator_widget.dart';
 import 'package:health_example/src/widgets/circular_graph.dart';
 import 'package:health_example/src/widgets/streak_widget.dart';
-import 'package:health_example/src/widgets/theme.dart';
-import 'package:health_example/src/widgets/vitals_widgets.dart';
+//import 'package:health_example/src/widgets/vitals_widgets.dart';
 import 'package:intl/intl.dart';
 
 class MainView extends StatelessWidget {
@@ -143,7 +143,7 @@ class MainView extends StatelessWidget {
               child: Container(
                 color: Colors.transparent,
                 height: constraints.maxHeight * 0.6,
-                child: const VitalsDetailGridBox(),
+                // child: const VitalsDetailGridBox(),
               ),
             ),
           ],

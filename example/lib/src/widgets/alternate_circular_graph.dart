@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:health_example/src/widgets/circular_graph.dart';
-import 'package:health_example/src/widgets/theme.dart';
+import 'package:health_example/src/utils/theme.dart';
 
 class AlternateCircularGraphWidget extends StatelessWidget {
   final List<CircularSegment> segments;
