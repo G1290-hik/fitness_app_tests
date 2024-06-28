@@ -8,3 +8,4 @@ export 'streak_widget.dart';
 export 'vitals_widgets.dart';
 export 'charts/circular_graph.dart';
 export 'day_summary.dart';
+export 'goal_widget.dart';

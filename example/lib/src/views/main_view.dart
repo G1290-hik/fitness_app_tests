@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:health_example/src/utils/theme.dart';
-import 'package:health_example/src/widgets/bmi_indicator_widget.dart';
-import 'package:health_example/src/widgets/streak_widget.dart';
-import 'package:health_example/src/widgets/charts/circular_graph.dart';
+import 'package:health_example/src/views/bmi_calculation_view.dart';
+import 'package:health_example/src/widgets/widgets.dart';
 //import 'package:health_example/src/widgets/vitals_widgets.dart';
 import 'package:intl/intl.dart';
 
@@ -41,15 +40,17 @@ class MainView extends StatelessWidget {
                       fontSize: 30,
                     ),
                   ),
-                  Center(child: MergedCircularGraphWidget(
-                    alternatePadding: false,
-                    values: {
-                      'steps': 0.7,
-                      'calories': 0.5,
-                      'distance': 0.3,
-                    },
-                    size: 200,
-                  ),),
+                  Center(
+                    child: MergedCircularGraphWidget(
+                      alternatePadding: false,
+                      values: {
+                        'steps': 0.7,
+                        'calories': 0.5,
+                        'distance': 0.3,
+                      },
+                      size: 200,
+                    ),
+                  ),
                   const Card(
                     color: AppColors.menuBackground,
                     child: Padding(
@@ -68,72 +69,27 @@ class MainView extends StatelessWidget {
                     shrinkWrap: true,
                     mainAxisSpacing: 20,
                     crossAxisSpacing: 20,
-                    children: const [
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.star_border_purple500,
-                            size: 36,
-                            color: AppColors.contentColorRed,
-                          ),
-                          Text(
-                            "1277",
-                            style: TextStyle(
-                                fontSize: 24,
-                                color: AppColors.contentColorRed,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            "/10000",
-                            style: TextStyle(
-                                color: AppColors.mainTextColor2, fontSize: 20),
-                          )
-                        ],
+                    children: [
+                      GoalWidget(
+                        icon: Icons.do_not_step_rounded,
+                        currentVal: 3817,
+                        val: 10000,
+                        color: AppColors.contentColorRed,
+                        isDistance: false,
                       ),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.flip_camera_android,
-                            size: 36,
-                            color: AppColors.contentColorOrange,
-                          ),
-                          Text(
-                            "138",
-                            style: TextStyle(
-                                fontSize: 24,
-                                color: AppColors.contentColorOrange,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            "/800",
-                            style: TextStyle(
-                                color: AppColors.mainTextColor2, fontSize: 20),
-                          )
-                        ],
+                      GoalWidget(
+                        icon: Icons.bolt,
+                        currentVal: 308,
+                        val: 800,
+                        color: AppColors.contentColorOrange,
+                        isDistance: false,
                       ),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.social_distance,
-                            size: 36,
-                            color: AppColors.contentColorYellow,
-                          ),
-                          Text(
-                            "0.88",
-                            style: TextStyle(
-                                fontSize: 24,
-                                color: AppColors.contentColorYellow,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            "/8.0",
-                            style: TextStyle(
-                                color: AppColors.mainTextColor2, fontSize: 20),
-                          )
-                        ],
+                      GoalWidget(
+                        icon: Icons.data_exploration_outlined,
+                        currentVal: 2.75,
+                        val: 8.00,
+                        color: AppColors.contentColorYellow,
+                        isDistance: true,
                       ),
                     ],
                   ),
@@ -145,7 +101,17 @@ class MainView extends StatelessWidget {
               height: constraints.maxHeight * 0.2,
               width: constraints.maxWidth,
             ),
-            BMIWidget(height: constraints.maxHeight * 0.4),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BmiCalculationView()),
+                );
+              },
+              child: BMIWidget(
+                height: constraints.maxHeight * 0.47,
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Container(
