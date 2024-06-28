@@ -78,6 +78,34 @@ class HealthService {
     return _healthDataList;
   }
 
+  Future<List<HealthDataPoint>> getHealthDataPoints(
+      HealthDataType dataType, DateTime startTime, DateTime endTime) async {
+    List<HealthDataPoint> healthDataPoints = await fetchData(
+      [dataType],
+      startTime,
+      endTime,
+    );
+    return healthDataPoints;
+  }
+
+  Future<List<HealthDataPoint>> getHeartRate(
+      DateTime startTime, DateTime endTime) async {
+    return await getHealthDataPoints(
+        HealthDataType.HEART_RATE, startTime, endTime);
+  }
+
+  Future<List<HealthDataPoint>> getSystolicBP(
+      DateTime startTime, DateTime endTime) async {
+    return await getHealthDataPoints(
+        HealthDataType.BLOOD_PRESSURE_SYSTOLIC, startTime, endTime);
+  }
+
+  Future<List<HealthDataPoint>> getDiastolicBP(
+      DateTime startTime, DateTime endTime) async {
+    return await getHealthDataPoints(
+        HealthDataType.BLOOD_PRESSURE_DIASTOLIC, startTime, endTime);
+  }
+
   double aggregateHealthDataPoints(
       List<HealthDataPoint> dataPoints, Function(List<double>) aggregator) {
     List<double> values = dataPoints.map((e) {

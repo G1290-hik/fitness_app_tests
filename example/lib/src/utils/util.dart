@@ -115,7 +115,7 @@ const Map<String, List<HealthDataType>> groupedDataTypesAndroid = {
     // HealthDataType.STEPS,
     HealthDataType.DISTANCE_DELTA,
     // HealthDataType.FLIGHTS_CLIMBED,
-    // HealthDataType.WORKOUT,
+    HealthDataType.WORKOUT,
     // HealthDataType.TOTAL_CALORIES_BURNED,
   ],
   'Calories Burnt': [

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:health_example/src/utils/theme.dart';
-import 'package:health_example/src/widgets/alternate_circular_graph.dart';
+import 'package:health_example/src/widgets/charts/circular_graph.dart';
 
 class StreakWidget extends StatelessWidget {
   const StreakWidget({
@@ -37,7 +37,15 @@ class StreakWidget extends StatelessWidget {
                   return Flexible(
                     child: Column(
                       children: [
-                        AlternateCircularGraphWidget(),
+                        MergedCircularGraphWidget(
+                          values: {
+                            'steps': 0.7,
+                            'calories': 0.5,
+                            'distance': 0.3,
+                          },
+                          size: 50,
+                          alternatePadding: true,width: 4,
+                        ),
                         Text(
                           weekDays[index],
                           style: const TextStyle(

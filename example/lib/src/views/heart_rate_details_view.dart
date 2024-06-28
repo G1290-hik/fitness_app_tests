@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:health_example/src/service/service.dart';
 import 'package:health_example/src/utils/theme.dart';
-import 'package:health_example/src/widgets/heart_rate_candlestick_widget.dart';
-import 'package:health_example/src/widgets/min_max_grid_widget.dart';
+import 'package:health_example/src/widgets/widgets.dart';
 
 class HeartRateDetailScreen extends StatefulWidget {
   @override
   _HeartRateDetailScreenState createState() => _HeartRateDetailScreenState();
 }
 
-class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
+class _HeartRateDetailScreenState extends State<HeartRateDetailScreen>
+    with SingleTickerProviderStateMixin {
   final HealthService _healthService = HealthService();
   List<double> _minHeartRates7Days = [];
   List<double> _maxHeartRates7Days = [];
@@ -17,15 +17,57 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
   List<double> _minHeartRates30Days = [];
   List<double> _maxHeartRates30Days = [];
   List<DateTime> _dates30Days = [];
+  List<double> _hourlyHeartRatesMin = [];
+  List<double> _hourlyHeartRatesMax = [];
+  List<DateTime> _hourlyDates = [];
   DateTime _startDate = DateTime.now().subtract(Duration(days: 6));
   bool _isLoading = true;
   double _maxHeartRate = 0;
   double _minHeartRate = 0;
+  TabController? _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController?.addListener(_handleTabChange);
     _fetchHeartRateData();
+  }
+
+  void _handleTabChange() {
+    setState(() {
+      switch (_tabController?.index) {
+        case 0:
+          _updateMinMaxHeartRate(_hourlyHeartRatesMin, _hourlyHeartRatesMax);
+          break;
+        case 1:
+          _updateMinMaxHeartRate(_minHeartRates7Days, _maxHeartRates7Days);
+          break;
+        case 2:
+          _updateMinMaxHeartRate(_minHeartRates30Days, _maxHeartRates30Days);
+          break;
+      }
+    });
+  }
+
+  void _updateMinMaxHeartRate(List<double> minRates, List<double> maxRates) {
+    double minHeartRate = double.infinity;
+    double maxHeartRate = double.negativeInfinity;
+
+    for (int i = 0; i < minRates.length; i++) {
+      if (minRates[i] > 0 && minRates[i] < minHeartRate) {
+        minHeartRate = minRates[i];
+      }
+      if (maxRates[i] > 0 && maxRates[i] > maxHeartRate) {
+        maxHeartRate = maxRates[i];
+      }
+    }
+
+    setState(() {
+      _minHeartRate = minHeartRate != double.infinity ? minHeartRate : 0;
+      _maxHeartRate =
+          maxHeartRate != double.negativeInfinity ? maxHeartRate : 0;
+    });
   }
 
   Future<void> _fetchHeartRateData() async {
@@ -35,6 +77,8 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
 
     DateTime startTime7Days = _startDate;
     DateTime startTime30Days = DateTime.now().subtract(Duration(days: 29));
+    DateTime startTime1Day = DateTime(DateTime.now().year, DateTime.now().month,
+        DateTime.now().day); // Midnight of the current day
 
     List<double> minHeartRates7Days = [];
     List<double> maxHeartRates7Days = [];
@@ -43,6 +87,10 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
     List<double> minHeartRates30Days = [];
     List<double> maxHeartRates30Days = [];
     List<DateTime> dates30Days = [];
+
+    List<double> hourlyHeartRatesMin = [];
+    List<double> hourlyHeartRatesMax = [];
+    List<DateTime> hourlyDates = [];
 
     double overallMinHeartRate = double.infinity;
     double overallMaxHeartRate = double.negativeInfinity;
@@ -91,6 +139,23 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
       }
     }
 
+    // Fetch 1 day of data (hourly)
+    DateTime now = DateTime.now();
+    for (int i = 0; i <= now.hour; i++) {
+      // Loop until the current hour
+      DateTime hourStart = startTime1Day.add(Duration(hours: i));
+      DateTime hourEnd = hourStart.add(Duration(hours: 1));
+
+      double minHeartRate =
+          await _healthService.getMinHeartRate(hourStart, hourEnd);
+      double maxHeartRate =
+          await _healthService.getMaxHeartRate(hourStart, hourEnd);
+
+      hourlyHeartRatesMin.add(minHeartRate > 0 ? minHeartRate : 0);
+      hourlyHeartRatesMax.add(maxHeartRate > 0 ? maxHeartRate : 0);
+      hourlyDates.add(hourStart);
+    }
+
     setState(() {
       _minHeartRates7Days = minHeartRates7Days;
       _maxHeartRates7Days = maxHeartRates7Days;
@@ -99,6 +164,10 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
       _minHeartRates30Days = minHeartRates30Days;
       _maxHeartRates30Days = maxHeartRates30Days;
       _dates30Days = dates30Days;
+
+      _hourlyHeartRatesMin = hourlyHeartRatesMin;
+      _hourlyHeartRatesMax = hourlyHeartRatesMax;
+      _hourlyDates = hourlyDates;
 
       _isLoading = false;
 
@@ -114,8 +183,16 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
     print('Min heart rates 30 days: $_minHeartRates30Days');
     print('Max heart rates 30 days: $_maxHeartRates30Days');
     print('Dates 30 days: $_dates30Days');
+
+    print('Hourly heart rates min: $_hourlyHeartRatesMin');
+    print('Hourly heart rates max: $_hourlyHeartRatesMax');
+    print('Hourly dates: $_hourlyDates');
+
     print('Overall max heart rate: $_maxHeartRate');
     print('Overall min heart rate: $_minHeartRate');
+
+    // Set initial min and max heart rate based on the 1-day data
+    _updateMinMaxHeartRate(_hourlyHeartRatesMin, _hourlyHeartRatesMax);
   }
 
   @override
@@ -131,19 +208,14 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
             style: TextStyle(color: AppColors.mainTextColor1),
           ),
           bottom: TabBar(
+            controller: _tabController,
             unselectedLabelColor: AppColors.contentColorWhite,
             indicatorColor: AppColors.contentColorWhite,
             labelColor: AppColors.contentColorOrange,
             tabs: [
-              Tab(
-                text: '1 Day',
-              ),
-              Tab(
-                text: '7 Day',
-              ),
-              Tab(
-                text: '30 Day',
-              ),
+              Tab(text: '1 Day'),
+              Tab(text: '7 Day'),
+              Tab(text: '30 Day'),
             ],
           ),
         ),
@@ -154,11 +226,19 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
                 width: MediaQuery.sizeOf(context).width,
                 child: Column(
                   children: [
+
                     Expanded(
                       child: TabBarView(
+                        controller: _tabController,
                         children: [
-                          //1-day chart
-                          Placeholder(),
+                          // 1-day chart
+                          SingleDayHeartRateLineChart(
+                            fontSize: 10,
+                            interval: 2,
+                            minHeartRateValues: _hourlyHeartRatesMin,
+                            maxHeartRateValues: _hourlyHeartRatesMax,
+                            dates: _hourlyDates,
+                          ),
                           // 7-day chart
                           DaySummary(
                             minHeartRatesDays: _minHeartRates7Days,
@@ -195,44 +275,11 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen> {
       ),
     );
   }
-}
-
-class DaySummary extends StatelessWidget {
-  const DaySummary({
-    super.key,
-    required List<double> minHeartRatesDays,
-    required List<double> maxHeartRatesDays,
-    required List<DateTime> datesDays,
-    required this.interval,
-    required this.width,
-    required this.font,
-  })  : _minHeartRatesDays = minHeartRatesDays,
-        _maxHeartRatesDays = maxHeartRatesDays,
-        _datesDays = datesDays;
-
-  final List<double> _minHeartRatesDays;
-  final List<double> _maxHeartRatesDays;
-  final List<DateTime> _datesDays;
-  final double interval, width, font;
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: CandleStickChart(
-            interval: interval,
-            fontSize: font,
-            barWidth: width,
-            minHeartRates: _minHeartRatesDays,
-            maxHeartRates: _maxHeartRatesDays,
-            dates: _datesDays,
-            is7DayChart: false,
-          ),
-        ),
-        //TODO - Add a See History Card ,which leads to a page with history chunked in the manner of the detail_view.
-      ],
-    );
+  void dispose() {
+    _tabController?.dispose();
+    super.dispose();
   }
 }
+

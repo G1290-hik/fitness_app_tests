@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:health_example/src/utils/theme.dart';
 import 'package:health_example/src/widgets/bmi_indicator_widget.dart';
-import 'package:health_example/src/widgets/circular_graph.dart';
 import 'package:health_example/src/widgets/streak_widget.dart';
+import 'package:health_example/src/widgets/charts/circular_graph.dart';
 //import 'package:health_example/src/widgets/vitals_widgets.dart';
 import 'package:intl/intl.dart';
 
@@ -41,7 +41,15 @@ class MainView extends StatelessWidget {
                       fontSize: 30,
                     ),
                   ),
-                  Center(child: CircularGraphWidget()),
+                  Center(child: MergedCircularGraphWidget(
+                    alternatePadding: false,
+                    values: {
+                      'steps': 0.7,
+                      'calories': 0.5,
+                      'distance': 0.3,
+                    },
+                    size: 200,
+                  ),),
                   const Card(
                     color: AppColors.menuBackground,
                     child: Padding(
