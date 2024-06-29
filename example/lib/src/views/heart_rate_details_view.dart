@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:health_example/src/service/service.dart';
+import 'package:health_example/src/service/health_service.dart';
 import 'package:health_example/src/utils/theme.dart';
 import 'package:health_example/src/widgets/widgets.dart';
 
@@ -226,7 +226,6 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen>
                 width: MediaQuery.sizeOf(context).width,
                 child: Column(
                   children: [
-
                     Expanded(
                       child: TabBarView(
                         controller: _tabController,
@@ -261,13 +260,18 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen>
                       ),
                     ),
                     MinMaxGridWidget(
-                      maxHeartRate: _maxHeartRate,
-                      minHeartRate: _minHeartRate,
-                      showHeartRate: true,
-                      minDiastolic: null,
-                      minSystolic: null,
-                      maxDiastolic: null,
-                      maxSystolic: null,
+                      dataItems: [
+                        DataItem(
+                          title: 'Min Heart Rate',
+                          value: _minHeartRate,
+                          unit: 'bpm',
+                        ),
+                        DataItem(
+                          title: 'Max Heart Rate',
+                          value: _maxHeartRate,
+                          unit: 'bpm',
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -282,4 +286,3 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen>
     super.dispose();
   }
 }
-

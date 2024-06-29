@@ -1,121 +1,157 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:health_example/src/service/service.dart';
+import 'package:health/health.dart';
+import 'package:health_example/src/service/health_service.dart';
 import 'package:health_example/src/utils/theme.dart';
-import 'package:intl/intl.dart'; // Add this import for date formatting
+import 'package:health_example/src/widgets/charts/step_barchart.dart';
+import 'package:health_example/src/widgets/charts/steps_linechart_widget.dart';
+import 'package:health_example/src/widgets/min_max_grid_widget.dart';
 
 class StepDetailsScreen extends StatefulWidget {
   @override
   _StepDetailsScreenState createState() => _StepDetailsScreenState();
 }
 
-class _StepDetailsScreenState extends State<StepDetailsScreen> {
+class _StepDetailsScreenState extends State<StepDetailsScreen>
+    with SingleTickerProviderStateMixin {
   final HealthService _healthService = HealthService();
-  int _selectedChipIndex = 0;
-  double _totalSteps = 0;
-  double _totalDistance = 0.0;
-  double _totalCalories = 0.0;
-  bool _isLoading = false;
+  List<double> _stepsValues1Day = [];
+  List<double> _stepsValues7Days = [];
+  List<double> _stepsValues30Days = [];
+  List<double> _caloriesValues1Day = [];
+  List<double> _caloriesValues7Days = [];
+  List<double> _caloriesValues30Days = [];
+  bool _isLoading = true;
+  double _maxSteps = 0;
+  double _totalCalories1Day = 0;
+  double _totalCalories7Days = 0;
+  double _totalCalories30Days = 0;
 
-  List<FlSpot> _stepSpots = [];
-
-  final List<String> _chipLabels = ['1 DAY', '7 DAY', '30 DAY'];
+  TabController? _tabController;
 
   @override
   void initState() {
     super.initState();
-    _initializeHealthService();
-    _fetchHealthData();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController?.addListener(_updateMinMaxValues);
+    _fetchStepData();
   }
 
-  Future<void> _initializeHealthService() async {
-    await _healthService.configureHealth();
-    await _healthService.authorize();
+  @override
+  void dispose() {
+    _tabController?.removeListener(_updateMinMaxValues);
+    _tabController?.dispose();
+    super.dispose();
   }
 
-  Future<void> _fetchHealthData() async {
+  void _updateMinMaxValues() {
+    setState(() {
+      if (_tabController?.index == 1) {
+        _maxSteps = _stepsValues7Days.isNotEmpty
+            ? _stepsValues7Days.reduce((a, b) => a > b ? a : b)
+            : 0;
+        _totalCalories7Days = _caloriesValues7Days.reduce((a, b) => a + b);
+      } else if (_tabController?.index == 2) {
+        _maxSteps = _stepsValues30Days.isNotEmpty
+            ? _stepsValues30Days.reduce((a, b) => a > b ? a : b)
+            : 0;
+        _totalCalories30Days = _caloriesValues30Days.reduce((a, b) => a + b);
+      }
+    });
+  }
+
+  Future<void> _fetchStepData() async {
     setState(() {
       _isLoading = true;
     });
 
     DateTime now = DateTime.now();
-    DateTime startTime;
-    int interval;
-    int numberOfIntervals;
+    DateTime startTime1Day = DateTime(now.year, now.month, now.day);
+    DateTime endTime1Day = now;
 
-    switch (_selectedChipIndex) {
-      case 0:
-        // 1-day view: fetch hourly data
-        startTime = DateTime(now.year, now.month, now.day); // Start of today
-        interval = 1; // hours
-        numberOfIntervals = 24;
-        break;
-      case 1:
-        // 7-day view: fetch daily data
-        startTime = now.subtract(Duration(days: 6));
-        interval = 24; // hours
-        numberOfIntervals = 7;
-        break;
-      case 2:
-        // 30-day view: fetch daily data
-        startTime = now.subtract(Duration(days: 29));
-        interval = 24; // hours
-        numberOfIntervals = 30;
-        break;
-      default:
-        return;
+    DateTime startTime7Days = now.subtract(Duration(days: 6));
+    DateTime startTime30Days = now.subtract(Duration(days: 29));
+
+    List<double> stepsValues1Day = [];
+    List<double> stepsValues7Days = [];
+    List<double> stepsValues30Days = [];
+
+    List<double> caloriesValues1Day = [];
+    List<double> caloriesValues7Days = [];
+    List<double> caloriesValues30Days = [];
+
+    // Fetch 1 day of data from midnight to current time
+    for (int i = 0; i <= endTime1Day.difference(startTime1Day).inHours; i++) {
+      DateTime hourStart = startTime1Day.add(Duration(hours: i));
+      DateTime hourEnd = hourStart.add(Duration(hours: 1));
+
+      double steps = await _healthService.aggregateData(
+          [HealthDataType.STEPS],
+          hourStart,
+          hourEnd,
+          (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b));
+      stepsValues1Day.add(steps);
+
+      double calories = await _healthService.aggregateData(
+          [HealthDataType.TOTAL_CALORIES_BURNED],
+          hourStart,
+          hourEnd,
+          (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b));
+      caloriesValues1Day.add(calories);
     }
 
-    double totalSteps = 0;
-    double totalDistance = 0.0;
-    double totalCalories = 0.0;
+    // Fetch 7 days of data
+    for (int i = 0; i < 7; i++) {
+      DateTime dayStart = startTime7Days.add(Duration(days: i));
+      DateTime dayEnd = dayStart.add(Duration(days: 1));
 
-    List<FlSpot> stepSpots = [];
-    DateTime currentTime = startTime;
+      double steps = await _healthService.aggregateData(
+          [HealthDataType.STEPS],
+          dayStart,
+          dayEnd,
+          (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b));
+      stepsValues7Days.add(steps);
 
-    for (int i = 0; i < numberOfIntervals; i++) {
-      DateTime nextTime = currentTime.add(Duration(hours: interval));
-      double steps = await _healthService.getTotalSteps(currentTime, nextTime);
-      double distance = await _healthService.getDistance(currentTime, nextTime);
-      double calories =
-          await _healthService.getCaloriesBurnt(currentTime, nextTime);
+      double calories = await _healthService.aggregateData(
+          [HealthDataType.TOTAL_CALORIES_BURNED],
+          dayStart,
+          dayEnd,
+          (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b));
+      caloriesValues7Days.add(calories);
+    }
 
-      totalSteps += steps;
-      totalDistance += distance;
-      totalCalories += calories;
+    // Fetch 7 days of data
+    for (int i = 0; i < 28; i++) {
+      DateTime dayStart = startTime30Days.add(Duration(days: i));
+      DateTime dayEnd = dayStart.add(Duration(days: 1));
 
-      stepSpots.add(
-        FlSpot(i.toDouble(), totalSteps),
-      );
+      double steps = await _healthService.aggregateData(
+          [HealthDataType.STEPS],
+          dayStart,
+          dayEnd,
+          (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b));
+      stepsValues30Days.add(steps);
 
-      currentTime = nextTime;
+      double calories = await _healthService.aggregateData(
+          [HealthDataType.TOTAL_CALORIES_BURNED],
+          dayStart,
+          dayEnd,
+          (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b));
+      caloriesValues30Days.add(calories);
     }
 
     setState(() {
-      _totalSteps = totalSteps;
-      _totalDistance = totalDistance;
-      _totalCalories = totalCalories;
-      _stepSpots = stepSpots;
+      _stepsValues1Day = stepsValues1Day;
+      _stepsValues7Days = stepsValues7Days;
+      _stepsValues30Days = stepsValues30Days;
+      _caloriesValues1Day = caloriesValues1Day;
+      _caloriesValues7Days = caloriesValues7Days;
+      _caloriesValues30Days = caloriesValues30Days;
       _isLoading = false;
+      _totalCalories1Day = _caloriesValues1Day.reduce((a, b) => a + b);
+      _totalCalories7Days = _caloriesValues7Days.reduce((a, b) => a + b);
+      _totalCalories30Days = _caloriesValues30Days.reduce((a, b) => a + b);
+      _updateMinMaxValues();
     });
-
-    // Debug prints
-    debugPrint('Total steps: $_totalSteps');
-    debugPrint('Total distance: $_totalDistance km');
-    debugPrint('Total calories: $_totalCalories kcal');
-  }
-
-  void _onChipSelected(int index) {
-    setState(() {
-      _selectedChipIndex = index;
-      _isLoading = true;
-    });
-    _fetchHealthData(); // Fetch and update data based on the selected chip
-  }
-
-  String _getCurrentDate() {
-    DateTime now = DateTime.now();
-    return DateFormat('d MMM yyyy').format(now);
   }
 
   @override
@@ -123,206 +159,153 @@ class _StepDetailsScreenState extends State<StepDetailsScreen> {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.menuBackground,
-        title: Text('Step Details'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-      body: Container(
-        padding: const EdgeInsets.all(16.0),
-        height: MediaQuery.sizeOf(context).height,
-        width: MediaQuery.sizeOf(context).width,
-        child: ListView(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List<Widget>.generate(
-                _chipLabels.length,
-                (int index) {
-                  return ChoiceChip(
-                    label: Text(_chipLabels[index]),
-                    selected: _selectedChipIndex == index,
-                    onSelected: (bool selected) {
-                      _onChipSelected(index);
-                    },
-                  );
-                },
-              ).toList(),
-            ),
-            SizedBox(height: 16),
-            Text(
-              _getCurrentDate(), // Use the current date here
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'TOTAL',
-              style: TextStyle(fontSize: 18, color: AppColors.mainTextColor2),
-            ),
-            Text(
-              '${_totalSteps.toStringAsFixed(0)} steps',
-              style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.mainTextColor1),
-            ),
-            SizedBox(height: 16),
-            OneDayLineChart(
-              isLoading: _isLoading,
-              totalSteps: _totalSteps,
-              stepSpots: _stepSpots,
-              selectedChipIndex: _selectedChipIndex,
-            ),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Column(
-                  children: [
-                    Text(
-                      'TOTAL DISTANCE',
-                      style: TextStyle(color: AppColors.mainTextColor2),
-                    ),
-                    Text(
-                      '${_totalDistance.toStringAsFixed(1)} km',
-                      style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.mainTextColor1),
-                    ),
-                  ],
-                ),
-                Column(
-                  children: [
-                    Text(
-                      'TOTAL CALORIES',
-                      style: TextStyle(color: AppColors.mainTextColor2),
-                    ),
-                    Text(
-                      '${_totalCalories.toStringAsFixed(0)} kcal',
-                      style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.mainTextColor1),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+        title:
+            Text('Steps', style: TextStyle(color: AppColors.contentColorWhite)),
+        backgroundColor: AppColors.pageBackground,
+        bottom: TabBar(
+          controller: _tabController,
+          unselectedLabelColor: AppColors.contentColorWhite,
+          labelColor: AppColors.contentColorPink,
+          tabs: [
+            Tab(text: '1 Day'),
+            Tab(text: '7 Days'),
+            Tab(text: '30 Days'),
           ],
         ),
       ),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _build1DayView(),
+                _build7DayView(),
+                _build30DayView(),
+              ],
+            ),
     );
   }
-}
 
-class OneDayLineChart extends StatelessWidget {
-  const OneDayLineChart({
-    Key? key,
-    required bool isLoading,
-    required double totalSteps,
-    required List<FlSpot> stepSpots,
-    required int selectedChipIndex,
-  })  : _isLoading = isLoading,
-        _stepSpots = stepSpots,
-        _selectedChipIndex = selectedChipIndex,
-        super(key: key);
-
-  final bool _isLoading;
-  final List<FlSpot> _stepSpots;
-  final int _selectedChipIndex;
-
-  String formatHour(int hour) {
-    if (hour == 0 || hour == 24) {
-      return '12AM';
-    } else if (hour == 12) {
-      return '12PM';
-    } else if (hour < 12) {
-      return '${hour}AM';
-    } else {
-      return '${hour - 12}PM';
-    }
+  Widget _build1DayView() {
+    double avgSteps1Day = _stepsValues1Day.isNotEmpty
+        ? _stepsValues1Day.reduce((a, b) => a + b) / _stepsValues1Day.length
+        : 0;
+    return Column(
+      children: [
+        Expanded(
+          child: StepsLineChart(
+            stepsValues: _stepsValues1Day,
+            fontSize: 6,
+            interval: 1,
+            date: DateTime(
+              DateTime.now().year,
+              DateTime.now().month,
+              DateTime.now().day,
+            ),
+          ),
+        ),
+        MinMaxGridWidget(
+          dataItems: [
+            DataItem(
+              title: 'Avg Steps',
+              value: avgSteps1Day.toDouble(),
+              unit: 'steps',
+            ),
+            DataItem(
+              title: 'Max Steps',
+              value: _stepsValues1Day.isNotEmpty
+                  ? _stepsValues1Day.reduce((a, b) => a > b ? a : b).toDouble()
+                  : 0,
+              unit: 'steps',
+            ),
+            DataItem(
+              title: 'Total Calories',
+              value: _totalCalories1Day.toDouble(),
+              unit: 'calories',
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 300,
-      width: 300,
-      padding: EdgeInsets.all(8),
-      child: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : LineChart(
-              LineChartData(
-                gridData: FlGridData(show: false),
-                titlesData: FlTitlesData(
-                  topTitles:
-                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles:
-                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 60,
-                    ),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                      getTitlesWidget: (value, meta) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10.0),
-                          child: Text(
-                            formatHour(value.toInt()),
-                            style: TextStyle(color: AppColors.mainTextColor1),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                borderData: FlBorderData(show: false),
-                minX: 0,
-                maxX:
-                    _selectedChipIndex == 0 ? 24 : _stepSpots.length.toDouble(),
-                minY: 0,
-                maxY: 12000,
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: _stepSpots,
-                    isCurved: true,
-                    color: Colors.lightBlueAccent,
-                    barWidth: 5,
-                    belowBarData: BarAreaData(show: false),
-                  ),
-                ],
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                      return touchedSpots.map((LineBarSpot touchedSpot) {
-                        final flSpot = touchedSpot;
-                        return LineTooltipItem(
-                          'Hour: ${formatHour(flSpot.x.toInt())}\nSteps: ${flSpot.y.toInt()}',
-                          const TextStyle(color: Colors.white),
-                        );
-                      }).toList();
-                    },
-                  ),
-                  touchCallback:
-                      (FlTouchEvent event, LineTouchResponse? response) {
-                    if (response == null || response.lineBarSpots == null) {
-                      return;
-                    }
-                  },
-                  handleBuiltInTouches: true,
-                ),
-              ),
+  Widget _build7DayView() {
+    double avgSteps7Days = _stepsValues7Days.isNotEmpty
+        ? _stepsValues7Days.reduce((a, b) => a + b) / _stepsValues7Days.length
+        : 0;
+    return Column(
+      children: [
+        Expanded(
+          child: StepsBarChart(
+            stepsValues: _stepsValues7Days,
+            dates: List.generate(7,
+                (index) => DateTime.now().subtract(Duration(days: 6 - index))),
+            barWidth: 15,
+            fontSize: 10,
+            interval: 1,
+            is7DayChart: true,
+          ),
+        ),
+        MinMaxGridWidget(
+          dataItems: [
+            DataItem(
+              title: 'Avg Steps',
+              value: avgSteps7Days.toDouble(),
+              unit: 'steps',
             ),
+            DataItem(
+              title: 'Max Steps',
+              value: _maxSteps.toDouble(),
+              unit: 'steps',
+            ),
+            DataItem(
+              title: 'Total Calories',
+              value: _totalCalories7Days.toDouble(),
+              unit: 'calories',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _build30DayView() {
+    double avgSteps30Days = _stepsValues30Days.isNotEmpty
+        ? _stepsValues30Days.reduce((a, b) => a + b) / _stepsValues30Days.length
+        : 0;
+    return Column(
+      children: [
+        Expanded(
+          child: StepsBarChart(
+            stepsValues: _stepsValues30Days,
+            dates: List.generate(29,
+                (index) => DateTime.now().subtract(Duration(days: 29 - index))),
+            barWidth: 10,
+            fontSize: 10,
+            interval: 5,
+            is7DayChart: false,
+          ),
+        ),
+        MinMaxGridWidget(
+          dataItems: [
+            DataItem(
+              title: 'Avg Steps',
+              value: avgSteps30Days.toDouble(),
+              unit: 'steps',
+            ),
+            DataItem(
+              title: 'Max Steps',
+              value: _maxSteps.toDouble(),
+              unit: 'steps',
+            ),
+            DataItem(
+              title: 'Total Calories',
+              value: _totalCalories30Days.toDouble(),
+              unit: 'calories',
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

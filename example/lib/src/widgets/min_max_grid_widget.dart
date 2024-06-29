@@ -4,27 +4,10 @@ import 'package:health_example/src/utils/theme.dart';
 class MinMaxGridWidget extends StatelessWidget {
   const MinMaxGridWidget({
     super.key,
-    required this.showHeartRate,
-    required double? maxHeartRate,
-    required double? minHeartRate,
-    required double? minSystolic,
-    required double? minDiastolic,
-    required double? maxDiastolic,
-    required double? maxSystolic,
-  })  : _maxHeartRate = maxHeartRate,
-        _minHeartRate = minHeartRate,
-        _minSystolic = minSystolic,
-        _maxDiastolic = maxDiastolic,
-        _maxSystolic = maxSystolic,
-        _minDiastolic = minDiastolic;
+    required this.dataItems,
+  });
 
-  final bool showHeartRate;
-  final double? _maxHeartRate;
-  final double? _minHeartRate;
-  final double? _minSystolic;
-  final double? _minDiastolic;
-  final double? _maxDiastolic;
-  final double? _maxSystolic;
+  final List<DataItem> dataItems;
 
   @override
   Widget build(BuildContext context) {
@@ -34,22 +17,12 @@ class MinMaxGridWidget extends StatelessWidget {
       width: MediaQuery.sizeOf(context).width * 0.8,
       child: GridView.count(
         crossAxisCount: 2,
-        children: showHeartRate
-            ? [
-                _buildCard("Max HR", _maxHeartRate, "bpm"),
-                _buildCard("Min HR", _minHeartRate, "bpm"),
-              ]
-            : [
-                _buildCard("Max Systolic BP", _maxSystolic, "mmHg"),
-                _buildCard("Min Systolic BP", _minSystolic, "mmHg"),
-                _buildCard("Max Diastolic BP", _maxDiastolic, "mmHg"),
-                _buildCard("Min Diastolic BP", _minDiastolic, "mmHg"),
-              ],
+        children: dataItems.map((item) => _buildCard(item)).toList(),
       ),
     );
   }
 
-  Widget _buildCard(String title, double? value, String unit) {
+  Widget _buildCard(DataItem item) {
     return Card(
       color: AppColors.itemsBackground,
       child: Padding(
@@ -59,20 +32,20 @@ class MinMaxGridWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              title,
+              item.title,
               style: TextStyle(color: AppColors.mainTextColor2),
             ),
             const SizedBox(height: 8),
             RichText(
               text: TextSpan(
-                text: value?.toStringAsFixed(0),
+                text: item.value?.toStringAsFixed(0),
                 style: TextStyle(
                   fontSize: 20,
                   color: AppColors.mainTextColor1,
                 ),
                 children: [
                   TextSpan(
-                    text: ' $unit',
+                    text: ' ${item.unit}',
                     style: TextStyle(
                         fontSize: 14,
                         color: AppColors.mainTextColor2,
@@ -86,4 +59,12 @@ class MinMaxGridWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+class DataItem {
+  final String title;
+  final double? value;
+  final String unit;
+
+  DataItem({required this.title, required this.value, required this.unit});
 }

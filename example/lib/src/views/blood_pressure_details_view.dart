@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:health/health.dart';
-import 'package:health_example/src/service/service.dart';
+import 'package:health_example/src/service/health_service.dart';
 import 'package:health_example/src/utils/theme.dart';
 import 'package:health_example/src/widgets/charts/blood_pressure_candlestick_widget.dart';
 import 'package:health_example/src/widgets/charts/blood_pressure_linechart_widget.dart';
@@ -56,36 +56,36 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
       if (_tabController?.index == 1) {
         _maxSystolic = _filterZeroValues(_maxSystolic7Days).isNotEmpty
             ? _filterZeroValues(_maxSystolic7Days)
-            .reduce((a, b) => a > b ? a : b)
+                .reduce((a, b) => a > b ? a : b)
             : 0;
         _minSystolic = _filterZeroValues(_minSystolic7Days).isNotEmpty
             ? _filterZeroValues(_minSystolic7Days)
-            .reduce((a, b) => a < b ? a : b)
+                .reduce((a, b) => a < b ? a : b)
             : 0;
         _maxDiastolic = _filterZeroValues(_maxDiastolic7Days).isNotEmpty
             ? _filterZeroValues(_maxDiastolic7Days)
-            .reduce((a, b) => a > b ? a : b)
+                .reduce((a, b) => a > b ? a : b)
             : 0;
         _minDiastolic = _filterZeroValues(_minDiastolic7Days).isNotEmpty
             ? _filterZeroValues(_minDiastolic7Days)
-            .reduce((a, b) => a < b ? a : b)
+                .reduce((a, b) => a < b ? a : b)
             : 0;
       } else if (_tabController?.index == 2) {
         _maxSystolic = _filterZeroValues(_maxSystolic30Days).isNotEmpty
             ? _filterZeroValues(_maxSystolic30Days)
-            .reduce((a, b) => a > b ? a : b)
+                .reduce((a, b) => a > b ? a : b)
             : 0;
         _minSystolic = _filterZeroValues(_minSystolic30Days).isNotEmpty
             ? _filterZeroValues(_minSystolic30Days)
-            .reduce((a, b) => a < b ? a : b)
+                .reduce((a, b) => a < b ? a : b)
             : 0;
         _maxDiastolic = _filterZeroValues(_maxDiastolic30Days).isNotEmpty
             ? _filterZeroValues(_maxDiastolic30Days)
-            .reduce((a, b) => a > b ? a : b)
+                .reduce((a, b) => a > b ? a : b)
             : 0;
         _minDiastolic = _filterZeroValues(_minDiastolic30Days).isNotEmpty
             ? _filterZeroValues(_minDiastolic30Days)
-            .reduce((a, b) => a < b ? a : b)
+                .reduce((a, b) => a < b ? a : b)
             : 0;
       }
     });
@@ -130,14 +130,14 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
           [HealthDataType.BLOOD_PRESSURE_SYSTOLIC],
           hourStart,
           hourEnd,
-              (values) => values.isEmpty
+          (values) => values.isEmpty
               ? 0
               : values.reduce((a, b) => a + b) / values.length);
       double diastolic = await _healthService.aggregateData(
           [HealthDataType.BLOOD_PRESSURE_DIASTOLIC],
           hourStart,
           hourEnd,
-              (values) => values.isEmpty
+          (values) => values.isEmpty
               ? 0
               : values.reduce((a, b) => a + b) / values.length);
 
@@ -151,13 +151,13 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
       DateTime dayEnd = dayStart.add(Duration(days: 1));
 
       double minSystolic =
-      await _healthService.getMinSystolicBloodPressure(dayStart, dayEnd);
+          await _healthService.getMinSystolicBloodPressure(dayStart, dayEnd);
       double maxSystolic =
-      await _healthService.getMaxSystolicBloodPressure(dayStart, dayEnd);
+          await _healthService.getMaxSystolicBloodPressure(dayStart, dayEnd);
       double minDiastolic =
-      await _healthService.getMinDiastolicBloodPressure(dayStart, dayEnd);
+          await _healthService.getMinDiastolicBloodPressure(dayStart, dayEnd);
       double maxDiastolic =
-      await _healthService.getMaxDiastolicBloodPressure(dayStart, dayEnd);
+          await _healthService.getMaxDiastolicBloodPressure(dayStart, dayEnd);
 
       minSystolic7Days.add(minSystolic);
       maxSystolic7Days.add(maxSystolic);
@@ -172,13 +172,13 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
       DateTime dayEnd = dayStart.add(Duration(days: 1));
 
       double minSystolic =
-      await _healthService.getMinSystolicBloodPressure(dayStart, dayEnd);
+          await _healthService.getMinSystolicBloodPressure(dayStart, dayEnd);
       double maxSystolic =
-      await _healthService.getMaxSystolicBloodPressure(dayStart, dayEnd);
+          await _healthService.getMaxSystolicBloodPressure(dayStart, dayEnd);
       double minDiastolic =
-      await _healthService.getMinDiastolicBloodPressure(dayStart, dayEnd);
+          await _healthService.getMinDiastolicBloodPressure(dayStart, dayEnd);
       double maxDiastolic =
-      await _healthService.getMaxDiastolicBloodPressure(dayStart, dayEnd);
+          await _healthService.getMaxDiastolicBloodPressure(dayStart, dayEnd);
 
       minSystolic30Days.add(minSystolic);
       maxSystolic30Days.add(maxSystolic);
@@ -214,13 +214,15 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       appBar: AppBar(
-        title: Text('Blood Pressure',style: TextStyle(color: AppColors.contentColorWhite),),
+        title: Text(
+          'Blood Pressure',
+          style: TextStyle(color: AppColors.contentColorWhite),
+        ),
         backgroundColor: AppColors.pageBackground,
         bottom: TabBar(
           controller: _tabController,
           unselectedLabelColor: AppColors.contentColorWhite,
           labelColor: AppColors.contentColorPink,
-
           tabs: [
             Tab(text: '1 Day'),
             Tab(text: '7 Days'),
@@ -231,17 +233,49 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : TabBarView(
-        controller: _tabController,
-        children: [
-          _build1DayView(),
-          _build7DayView(),
-          _build30DayView(),
-        ],
-      ),
+              controller: _tabController,
+              children: [
+                _build1DayView(),
+                _build7DayView(),
+                _build30DayView(),
+              ],
+            ),
     );
   }
+
 //TODO:Add a row widget that let's the user switch the current day
   Widget _build1DayView() {
+    List<DataItem> dataItems = [
+      DataItem(
+          title: "Max Systolic BP",
+          value: _filterZeroValues(_systolicValues1Day).isNotEmpty
+              ? _filterZeroValues(_systolicValues1Day)
+                  .reduce((a, b) => a > b ? a : b)
+              : 0,
+          unit: "mmHg"),
+      DataItem(
+          title: "Min Systolic BP",
+          value: _filterZeroValues(_systolicValues1Day).isNotEmpty
+              ? _filterZeroValues(_systolicValues1Day)
+                  .reduce((a, b) => a < b ? a : b)
+              : 0,
+          unit: "mmHg"),
+      DataItem(
+          title: "Max Diastolic BP",
+          value: _filterZeroValues(_diastolicValues1Day).isNotEmpty
+              ? _filterZeroValues(_diastolicValues1Day)
+                  .reduce((a, b) => a > b ? a : b)
+              : 0,
+          unit: "mmHg"),
+      DataItem(
+          title: "Min Diastolic BP",
+          value: _filterZeroValues(_diastolicValues1Day).isNotEmpty
+              ? _filterZeroValues(_diastolicValues1Day)
+                  .reduce((a, b) => a < b ? a : b)
+              : 0,
+          unit: "mmHg"),
+    ];
+
     return Column(
       children: [
         Expanded(
@@ -257,32 +291,19 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
             ), // Start date set to midnight of the current day
           ),
         ),
-        MinMaxGridWidget(
-          minSystolic: _filterZeroValues(_systolicValues1Day).isNotEmpty
-              ? _filterZeroValues(_systolicValues1Day)
-              .reduce((a, b) => a < b ? a : b)
-              : 0,
-          maxSystolic: _filterZeroValues(_systolicValues1Day).isNotEmpty
-              ? _filterZeroValues(_systolicValues1Day)
-              .reduce((a, b) => a > b ? a : b)
-              : 0,
-          minDiastolic: _filterZeroValues(_diastolicValues1Day).isNotEmpty
-              ? _filterZeroValues(_diastolicValues1Day)
-              .reduce((a, b) => a < b ? a : b)
-              : 0,
-          maxDiastolic: _filterZeroValues(_diastolicValues1Day).isNotEmpty
-              ? _filterZeroValues(_diastolicValues1Day)
-              .reduce((a, b) => a > b ? a : b)
-              : 0,
-          showHeartRate: false,
-          maxHeartRate: null,
-          minHeartRate: null,
-        ),
+        MinMaxGridWidget(dataItems: dataItems),
       ],
     );
   }
 
   Widget _build7DayView() {
+    List<DataItem> dataItems = [
+      DataItem(title: "Max Systolic BP", value: _maxSystolic, unit: "mmHg"),
+      DataItem(title: "Min Systolic BP", value: _minSystolic, unit: "mmHg"),
+      DataItem(title: "Max Diastolic BP", value: _maxDiastolic, unit: "mmHg"),
+      DataItem(title: "Min Diastolic BP", value: _minDiastolic, unit: "mmHg"),
+    ];
+
     return Column(
       children: [
         Expanded(
@@ -291,25 +312,26 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
             maxSystolic: _maxSystolic7Days,
             minDiastolic: _minDiastolic7Days,
             maxDiastolic: _maxDiastolic7Days,
-
             dates: _dates7Days,
-            fontSize: 8, interval: 1, barWidth: 6, is7DayChart: false,
+            fontSize: 8,
+            interval: 1,
+            barWidth: 6,
+            is7DayChart: false,
           ),
         ),
-        MinMaxGridWidget(
-          minSystolic: _minSystolic,
-          maxSystolic: _maxSystolic,
-          minDiastolic: _minDiastolic,
-          maxDiastolic: _maxDiastolic,
-          showHeartRate: false,
-          maxHeartRate: null,
-          minHeartRate: null,
-        ),
+        MinMaxGridWidget(dataItems: dataItems),
       ],
     );
   }
 
   Widget _build30DayView() {
+    List<DataItem> dataItems = [
+      DataItem(title: "Max Systolic BP", value: _maxSystolic, unit: "mmHg"),
+      DataItem(title: "Min Systolic BP", value: _minSystolic, unit: "mmHg"),
+      DataItem(title: "Max Diastolic BP", value: _maxDiastolic, unit: "mmHg"),
+      DataItem(title: "Min Diastolic BP", value: _minDiastolic, unit: "mmHg"),
+    ];
+
     return Column(
       children: [
         Expanded(
@@ -319,19 +341,13 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
             minDiastolic: _minDiastolic30Days,
             maxDiastolic: _maxDiastolic30Days,
             dates: _dates30Days,
-            fontSize: 8, interval: 3,is7DayChart: false,barWidth: 5,
-
+            fontSize: 8,
+            interval: 3,
+            is7DayChart: false,
+            barWidth: 5,
           ),
         ),
-        MinMaxGridWidget(
-          minSystolic: _minSystolic,
-          maxSystolic: _maxSystolic,
-          minDiastolic: _minDiastolic,
-          maxDiastolic: _maxDiastolic,
-          showHeartRate: false,
-          maxHeartRate: null,
-          minHeartRate: null,
-        ),
+        MinMaxGridWidget(dataItems: dataItems),
       ],
     );
   }
