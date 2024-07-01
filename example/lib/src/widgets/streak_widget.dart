@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:health_example/src/utils/theme.dart';
+import 'package:health_example/src/views/steps_detail_view.dart';
 import 'package:health_example/src/widgets/charts/circular_graph.dart';
 
-class StreakWidget extends StatelessWidget {
+class StreakWidget extends StatefulWidget {
   const StreakWidget({
     super.key,
     required this.weekDays,
@@ -15,12 +16,61 @@ class StreakWidget extends StatelessWidget {
   final double width;
 
   @override
+  _StreakWidgetState createState() => _StreakWidgetState();
+}
+
+class _StreakWidgetState extends State<StreakWidget> {
+  final StepDataFetcher _stepDataFetcher = StepDataFetcher();
+  bool _isLoading = true;
+  List<Map<String, double>> _weeklyData = List.generate(7, (_) => {});
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchWeeklyData();
+  }
+
+  Future<void> _fetchWeeklyData() async {
+    DateTime now = DateTime.now();
+    List<Map<String, double>> weeklyData = [];
+
+    for (int i = 6; i >= 0; i--) {
+      DateTime dayStart =
+          DateTime(now.year, now.month, now.day).subtract(Duration(days: i));
+      DateTime dayEnd = dayStart.add(Duration(days: 1));
+
+      List<double> stepsValues = await _stepDataFetcher.fetchStepsData(
+          dayStart, dayEnd, Duration(days: 1));
+      List<double> caloriesValues = await _stepDataFetcher.fetchCaloriesData(
+          dayStart, dayEnd, Duration(days: 1));
+
+      double totalSteps =
+          stepsValues.isNotEmpty ? stepsValues.reduce((a, b) => a + b) : 0;
+      double totalCalories = caloriesValues.isNotEmpty
+          ? caloriesValues.reduce((a, b) => a + b)
+          : 0;
+      double totalDistance = totalSteps * 0.0008; // Example conversion factor
+
+      weeklyData.add({
+        'steps': totalSteps,
+        'calories': totalCalories,
+        'distance': totalDistance,
+      });
+    }
+
+    setState(() {
+      _isLoading = false;
+      _weeklyData = weeklyData;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
-        height: height,
-        width: width,
+        height: widget.height,
+        width: widget.width,
         padding: const EdgeInsets.all(2.0),
         decoration: BoxDecoration(
           color: AppColors.menuBackground.withOpacity(0.2),
@@ -31,33 +81,37 @@ class StreakWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: List.generate(7, (index) {
-                  return Flexible(
-                    child: Column(
-                      children: [
-                        MergedCircularGraphWidget(
-                          values: {
-                            'steps': 0.7,
-                            'calories': 0.5,
-                            'distance': 0.3,
-                          },
-                          size: 50,
-                          alternatePadding: true,width: 4,
-                        ),
-                        Text(
-                          weekDays[index],
-                          style: const TextStyle(
-                            color: AppColors.mainTextColor2,
-                            fontSize: 12,
+              child: _isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: List.generate(7, (index) {
+                        Map<String, double> dayData = _weeklyData[index];
+                        return Flexible(
+                          child: Column(
+                            children: [
+                              MergedCircularGraphWidget(
+                                values: {
+                                  'steps': dayData['steps']! / 10000,
+                                  'calories': dayData['calories']! / 800,
+                                  'distance': dayData['distance']! / 8,
+                                },
+                                size: 50,
+                                alternatePadding: true,
+                                width: 4,
+                              ),
+                              Text(
+                                widget.weekDays[index],
+                                style: const TextStyle(
+                                  color: AppColors.mainTextColor2,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                        );
+                      }),
                     ),
-                  );
-                }),
-              ),
             ),
           ],
         ),

@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:health_example/src/utils/theme.dart';
+import 'package:intl/intl.dart';
 
 class StepsBarChart extends StatelessWidget {
   final List<double> stepsValues;
@@ -18,10 +18,17 @@ class StepsBarChart extends StatelessWidget {
     required this.fontSize,
     required this.interval,
     required this.is7DayChart,
+    required double maxY,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Calculate maxY based on the maximum step value and round it up to the nearest 1000
+    double maxStepsValue = stepsValues.isNotEmpty
+        ? stepsValues.reduce((a, b) => a > b ? a : b)
+        : 0;
+    double maxY = ((maxStepsValue / 1000).ceil() * 1000).toDouble();
+
     return AspectRatio(
       aspectRatio: is7DayChart ? 1 : 1.2,
       child: Card(
@@ -33,7 +40,7 @@ class StepsBarChart extends StatelessWidget {
           child: BarChart(
             BarChartData(
               alignment: BarChartAlignment.spaceBetween,
-              maxY: stepsValues.reduce((a, b) => a > b ? a : b) + 50,
+              maxY: maxY,
               minY: 0,
               barTouchData: BarTouchData(
                 touchTooltipData: BarTouchTooltipData(
@@ -88,7 +95,7 @@ class StepsBarChart extends StatelessWidget {
                       }
                       return Container();
                     },
-                    reservedSize: 45,
+                    reservedSize: 50,
                   ),
                 ),
                 leftTitles: AxisTitles(
@@ -98,11 +105,10 @@ class StepsBarChart extends StatelessWidget {
                       return Text(
                         value.toInt().toString(),
                         style: TextStyle(
-                          color: AppColors.mainTextColor2,
-                        ),
+                            color: AppColors.mainTextColor2, fontSize: 10),
                       );
                     },
-                    reservedSize: 40,
+                    reservedSize: 35,
                   ),
                 ),
                 topTitles: AxisTitles(
@@ -126,8 +132,8 @@ class StepsBarChart extends StatelessWidget {
                       toY: stepsValues[index],
                       gradient: LinearGradient(
                         colors: [
-                          AppColors.contentColorPink,
-                          AppColors.contentColorRed,
+                          AppColors.contentColorGreen,
+                          AppColors.contentColorYellow,
                           AppColors.contentColorOrange,
                         ],
                         begin: Alignment.bottomCenter,

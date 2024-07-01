@@ -1,6 +1,6 @@
 // This is a generated file; do not edit or check into version control.
 FLUTTER_ROOT=C:\src\flutter
-FLUTTER_APPLICATION_PATH=C:\Users\whyar\Downloads\flutter-plugins-master\flutter-plugins-master\packages\health\example
+FLUTTER_APPLICATION_PATH=C:\Users\whyar\OneDrive\Desktop\fitness_app_test_apps\example
 COCOAPODS_PARALLEL_CODE_SIGN=true
 FLUTTER_TARGET=lib\main.dart
 FLUTTER_BUILD_DIR=build

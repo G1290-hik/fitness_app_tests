@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:health/health.dart';
-import 'package:health_example/src/service/health_service.dart';
+import 'package:health_example/src/service/service.dart';
 import 'package:health_example/src/utils/theme.dart';
 import 'package:health_example/src/widgets/charts/step_barchart.dart';
 import 'package:health_example/src/widgets/charts/steps_linechart_widget.dart';
-import 'package:health_example/src/widgets/min_max_grid_widget.dart';
+import 'package:health_example/src/widgets/grid_widget.dart';
 
 class StepDetailsScreen extends StatefulWidget {
   @override
@@ -13,7 +13,7 @@ class StepDetailsScreen extends StatefulWidget {
 
 class _StepDetailsScreenState extends State<StepDetailsScreen>
     with SingleTickerProviderStateMixin {
-  final HealthService _healthService = HealthService();
+  final StepDataFetcher _stepDataFetcher = StepDataFetcher();
   List<double> _stepsValues1Day = [];
   List<double> _stepsValues7Days = [];
   List<double> _stepsValues30Days = [];
@@ -69,83 +69,27 @@ class _StepDetailsScreenState extends State<StepDetailsScreen>
     DateTime endTime1Day = now;
 
     DateTime startTime7Days = now.subtract(Duration(days: 6));
+    DateTime endTime7Days = now;
+
     DateTime startTime30Days = now.subtract(Duration(days: 29));
+    DateTime endTime30Days = now;
 
-    List<double> stepsValues1Day = [];
-    List<double> stepsValues7Days = [];
-    List<double> stepsValues30Days = [];
+    _stepsValues1Day = await _stepDataFetcher.fetchStepsData(
+        startTime1Day, endTime1Day, Duration(hours: 1));
+    _caloriesValues1Day = await _stepDataFetcher.fetchCaloriesData(
+        startTime1Day, endTime1Day, Duration(hours: 1));
 
-    List<double> caloriesValues1Day = [];
-    List<double> caloriesValues7Days = [];
-    List<double> caloriesValues30Days = [];
+    _stepsValues7Days = await _stepDataFetcher.fetchStepsData(
+        startTime7Days, endTime7Days, Duration(days: 1));
+    _caloriesValues7Days = await _stepDataFetcher.fetchCaloriesData(
+        startTime7Days, endTime7Days, Duration(days: 1));
 
-    // Fetch 1 day of data from midnight to current time
-    for (int i = 0; i <= endTime1Day.difference(startTime1Day).inHours; i++) {
-      DateTime hourStart = startTime1Day.add(Duration(hours: i));
-      DateTime hourEnd = hourStart.add(Duration(hours: 1));
-
-      double steps = await _healthService.aggregateData(
-          [HealthDataType.STEPS],
-          hourStart,
-          hourEnd,
-          (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b));
-      stepsValues1Day.add(steps);
-
-      double calories = await _healthService.aggregateData(
-          [HealthDataType.TOTAL_CALORIES_BURNED],
-          hourStart,
-          hourEnd,
-          (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b));
-      caloriesValues1Day.add(calories);
-    }
-
-    // Fetch 7 days of data
-    for (int i = 0; i < 7; i++) {
-      DateTime dayStart = startTime7Days.add(Duration(days: i));
-      DateTime dayEnd = dayStart.add(Duration(days: 1));
-
-      double steps = await _healthService.aggregateData(
-          [HealthDataType.STEPS],
-          dayStart,
-          dayEnd,
-          (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b));
-      stepsValues7Days.add(steps);
-
-      double calories = await _healthService.aggregateData(
-          [HealthDataType.TOTAL_CALORIES_BURNED],
-          dayStart,
-          dayEnd,
-          (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b));
-      caloriesValues7Days.add(calories);
-    }
-
-    // Fetch 7 days of data
-    for (int i = 0; i < 28; i++) {
-      DateTime dayStart = startTime30Days.add(Duration(days: i));
-      DateTime dayEnd = dayStart.add(Duration(days: 1));
-
-      double steps = await _healthService.aggregateData(
-          [HealthDataType.STEPS],
-          dayStart,
-          dayEnd,
-          (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b));
-      stepsValues30Days.add(steps);
-
-      double calories = await _healthService.aggregateData(
-          [HealthDataType.TOTAL_CALORIES_BURNED],
-          dayStart,
-          dayEnd,
-          (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b));
-      caloriesValues30Days.add(calories);
-    }
+    _stepsValues30Days = await _stepDataFetcher.fetchStepsData(
+        startTime30Days, endTime30Days, Duration(days: 1));
+    _caloriesValues30Days = await _stepDataFetcher.fetchCaloriesData(
+        startTime30Days, endTime30Days, Duration(days: 1));
 
     setState(() {
-      _stepsValues1Day = stepsValues1Day;
-      _stepsValues7Days = stepsValues7Days;
-      _stepsValues30Days = stepsValues30Days;
-      _caloriesValues1Day = caloriesValues1Day;
-      _caloriesValues7Days = caloriesValues7Days;
-      _caloriesValues30Days = caloriesValues30Days;
       _isLoading = false;
       _totalCalories1Day = _caloriesValues1Day.reduce((a, b) => a + b);
       _totalCalories7Days = _caloriesValues7Days.reduce((a, b) => a + b);
@@ -165,7 +109,7 @@ class _StepDetailsScreenState extends State<StepDetailsScreen>
         bottom: TabBar(
           controller: _tabController,
           unselectedLabelColor: AppColors.contentColorWhite,
-          labelColor: AppColors.contentColorPink,
+          labelColor: AppColors.contentColorGreen,
           tabs: [
             Tab(text: '1 Day'),
             Tab(text: '7 Days'),
@@ -190,6 +134,10 @@ class _StepDetailsScreenState extends State<StepDetailsScreen>
     double avgSteps1Day = _stepsValues1Day.isNotEmpty
         ? _stepsValues1Day.reduce((a, b) => a + b) / _stepsValues1Day.length
         : 0;
+    double totalDistance1Day = _stepsValues1Day.isNotEmpty
+        ? _stepsValues1Day.reduce((a, b) => a + b) *
+            0.0008 // Example conversion factor
+        : 0;
     return Column(
       children: [
         Expanded(
@@ -204,7 +152,7 @@ class _StepDetailsScreenState extends State<StepDetailsScreen>
             ),
           ),
         ),
-        MinMaxGridWidget(
+        GridWidget(
           dataItems: [
             DataItem(
               title: 'Avg Steps',
@@ -223,6 +171,11 @@ class _StepDetailsScreenState extends State<StepDetailsScreen>
               value: _totalCalories1Day.toDouble(),
               unit: 'calories',
             ),
+            DataItem(
+              title: 'Total Distance',
+              value: totalDistance1Day,
+              unit: 'km',
+            ),
           ],
         ),
       ],
@@ -232,6 +185,10 @@ class _StepDetailsScreenState extends State<StepDetailsScreen>
   Widget _build7DayView() {
     double avgSteps7Days = _stepsValues7Days.isNotEmpty
         ? _stepsValues7Days.reduce((a, b) => a + b) / _stepsValues7Days.length
+        : 0;
+    double totalDistance7Days = _stepsValues7Days.isNotEmpty
+        ? _stepsValues7Days.reduce((a, b) => a + b) *
+            0.0008 // Example conversion factor
         : 0;
     return Column(
       children: [
@@ -244,9 +201,10 @@ class _StepDetailsScreenState extends State<StepDetailsScreen>
             fontSize: 10,
             interval: 1,
             is7DayChart: true,
+            maxY: 10000,
           ),
         ),
-        MinMaxGridWidget(
+        GridWidget(
           dataItems: [
             DataItem(
               title: 'Avg Steps',
@@ -261,7 +219,12 @@ class _StepDetailsScreenState extends State<StepDetailsScreen>
             DataItem(
               title: 'Total Calories',
               value: _totalCalories7Days.toDouble(),
-              unit: 'calories',
+              unit: 'cals',
+            ),
+            DataItem(
+              title: 'Total Distance',
+              value: totalDistance7Days,
+              unit: 'km',
             ),
           ],
         ),
@@ -273,20 +236,25 @@ class _StepDetailsScreenState extends State<StepDetailsScreen>
     double avgSteps30Days = _stepsValues30Days.isNotEmpty
         ? _stepsValues30Days.reduce((a, b) => a + b) / _stepsValues30Days.length
         : 0;
+    double totalDistance30Days = _stepsValues30Days.isNotEmpty
+        ? _stepsValues30Days.reduce((a, b) => a + b) *
+            0.0008 // Example conversion factor
+        : 0;
     return Column(
       children: [
         Expanded(
           child: StepsBarChart(
             stepsValues: _stepsValues30Days,
-            dates: List.generate(29,
+            dates: List.generate(30,
                 (index) => DateTime.now().subtract(Duration(days: 29 - index))),
-            barWidth: 10,
+            barWidth: 5,
             fontSize: 10,
             interval: 5,
             is7DayChart: false,
+            maxY: 10000,
           ),
         ),
-        MinMaxGridWidget(
+        GridWidget(
           dataItems: [
             DataItem(
               title: 'Avg Steps',
@@ -301,11 +269,64 @@ class _StepDetailsScreenState extends State<StepDetailsScreen>
             DataItem(
               title: 'Total Calories',
               value: _totalCalories30Days.toDouble(),
-              unit: 'calories',
+              unit: 'cals',
+            ),
+            DataItem(
+              title: 'Total Distance',
+              value: totalDistance30Days,
+              unit: 'km',
             ),
           ],
         ),
       ],
     );
+  }
+}
+
+class StepDataFetcher {
+  final HealthService _healthService = HealthService();
+
+  Future<List<double>> fetchStepsData(
+      DateTime startTime, DateTime endTime, Duration interval) async {
+    List<double> stepsValues = [];
+    int intervalsCount =
+        endTime.difference(startTime).inMinutes ~/ interval.inMinutes;
+
+    for (int i = 0; i <= intervalsCount; i++) {
+      DateTime periodStart =
+          startTime.add(Duration(minutes: i * interval.inMinutes));
+      DateTime periodEnd = periodStart.add(interval);
+
+      double steps = await _healthService.aggregateData(
+          [HealthDataType.STEPS],
+          periodStart,
+          periodEnd,
+          (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b));
+      stepsValues.add(steps);
+    }
+
+    return stepsValues;
+  }
+
+  Future<List<double>> fetchCaloriesData(
+      DateTime startTime, DateTime endTime, Duration interval) async {
+    List<double> caloriesValues = [];
+    int intervalsCount =
+        endTime.difference(startTime).inMinutes ~/ interval.inMinutes;
+
+    for (int i = 0; i <= intervalsCount; i++) {
+      DateTime periodStart =
+          startTime.add(Duration(minutes: i * interval.inMinutes));
+      DateTime periodEnd = periodStart.add(interval);
+
+      double calories = await _healthService.aggregateData(
+          [HealthDataType.TOTAL_CALORIES_BURNED],
+          periodStart,
+          periodEnd,
+          (values) => values.isEmpty ? 0 : values.reduce((a, b) => a + b));
+      caloriesValues.add(calories);
+    }
+
+    return caloriesValues;
   }
 }

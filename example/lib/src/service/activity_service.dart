@@ -1,6 +1,6 @@
 import 'package:carp_serializable/carp_serializable.dart';
+import 'package:flutter/material.dart';
 import 'package:health/health.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class ActivityService {
   List<HealthDataPoint> _activityDataList = [];
@@ -10,41 +10,11 @@ class ActivityService {
   List<HealthDataAccess> get permissions =>
       activityTypes.map((e) => HealthDataAccess.READ_WRITE).toList();
 
-  Future<void> configureHealth() async {
-    Health().configure(useHealthConnectIfAvailable: true);
-  }
-
-  Future<void> installHealthConnect() async {
-    await Health().installHealthConnect();
-  }
-
-  Future<bool> authorize() async {
-    await Permission.activityRecognition.request();
-    await Permission.location.request();
-
-    bool? hasPermissions =
-        await Health().hasPermissions(activityTypes, permissions: permissions);
-
-    if (hasPermissions!) {
-      try {
-        return await Health()
-            .requestAuthorization(activityTypes, permissions: permissions);
-      } catch (error) {
-        print("Exception in authorize: $error");
-        return false;
-      }
-    }
-    return true;
-  }
-
-  Future<List<HealthDataPoint>> fetchAllActivityData() async {
+  Future<List<HealthDataPoint>> fetchAllActivityData(
+      DateTime startTime, DateTime endTime) async {
     _activityDataList.clear();
 
     try {
-      DateTime startTime =
-          DateTime.fromMillisecondsSinceEpoch(0); // Earliest possible date
-      DateTime endTime = DateTime.now();
-
       List<HealthDataPoint> activityData =
           await Health().getHealthDataFromTypes(
         types: activityTypes,
@@ -52,26 +22,38 @@ class ActivityService {
         endTime: endTime,
       );
 
-      print('Total number of activity data points: ${activityData.length}.');
+      debugPrint(
+          'Total number of activity data points: ${activityData.length}.');
       _activityDataList.addAll(activityData);
     } catch (error) {
-      print("Exception in getHealthDataFromTypes: $error");
+      debugPrint("Exception in getHealthDataFromTypes: $error");
     }
+
+    // Filter out invalid dates
+    _activityDataList = _activityDataList
+        .where((data) =>
+            data.dateFrom.isAfter(DateTime(2000)) &&
+            data.dateTo.isAfter(DateTime(2000)))
+        .toList();
 
     _activityDataList = Health().removeDuplicates(_activityDataList);
 
-    _activityDataList.forEach((data) => print(toJsonString(data)));
+    _activityDataList.forEach((data) => debugPrint(toJsonString(data)));
 
     return _activityDataList;
   }
 
-  Future<List<HealthDataPoint>> getActivityDataPoints() async {
-    List<HealthDataPoint> activityDataPoints = await fetchAllActivityData();
+  Future<List<HealthDataPoint>> getActivityDataPoints(
+      DateTime startTime, DateTime endTime) async {
+    List<HealthDataPoint> activityDataPoints =
+        await fetchAllActivityData(startTime, endTime);
     return activityDataPoints;
   }
 
-  Future<num?> getTotalCaloriesBurnt() async {
-    List<HealthDataPoint> dataPoints = await getActivityDataPoints();
+  Future<num?> getTotalCaloriesBurnt(
+      DateTime startTime, DateTime endTime) async {
+    List<HealthDataPoint> dataPoints =
+        await getActivityDataPoints(startTime, endTime);
     List<int?> values = dataPoints
         .where((point) => point.type == HealthDataType.WORKOUT)
         .map((e) => (e.value as WorkoutHealthValue).totalEnergyBurned)
@@ -81,6 +63,79 @@ class ActivityService {
       return 0.0;
     }
 
-    return values.reduce((a, b) => a! + b!);
+    return values.where((value) => value != null).reduce((a, b) => a! + b!);
+  }
+
+  Future<Map<DateTime, Map<String, dynamic>>> aggregateDataByTimeFrame(
+      DateTime startTime, DateTime endTime) async {
+    List<HealthDataPoint> dataPoints =
+        await getActivityDataPoints(startTime, endTime);
+
+    debugPrint('Number of data points fetched: ${dataPoints.length}');
+
+    Map<DateTime, Map<String, dynamic>> aggregatedData = {};
+
+    // Grouping data points into sessions
+    List<List<HealthDataPoint>> sessions = [];
+    for (var point in dataPoints) {
+      if (point.type == HealthDataType.WORKOUT) {
+        bool addedToSession = false;
+        for (var session in sessions) {
+          // Check if the point belongs to an existing session
+          if (point.dateFrom.difference(session.last.dateTo).inMinutes <= 5) {
+            session.add(point);
+            addedToSession = true;
+            break;
+          }
+        }
+        if (!addedToSession) {
+          // Create a new session
+          sessions.add([point]);
+        }
+      }
+    }
+
+    debugPrint('Number of sessions created: ${sessions.length}');
+
+    for (var session in sessions) {
+      DateTime sessionStart = session.first.dateFrom;
+      DateTime sessionEnd = session.last.dateTo;
+      num totalCalories = session
+          .map((e) => (e.value as WorkoutHealthValue).totalEnergyBurned)
+          .where((value) => value != null)
+          .fold(0, (prev, element) => prev + element!);
+
+      double totalDistance = session
+          .map((e) => (e.value as WorkoutHealthValue).totalDistance)
+          .where((value) => value != null)
+          .fold(0.0, (prev, element) => prev + element!);
+
+      String workoutType = session.first.type.toString();
+
+      aggregatedData[sessionStart] = {
+        'calories': totalCalories,
+        'startTime': sessionStart,
+        'endTime': sessionEnd,
+        'workoutType': workoutType,
+        'totalDistance': totalDistance,
+      };
+
+      debugPrint('Session aggregated data: ${aggregatedData[sessionStart]}');
+    }
+
+    debugPrint('Aggregated data: $aggregatedData');
+
+    return aggregatedData;
+  }
+
+  String getWorkoutDataType(WorkoutHealthValue workoutValue) {
+    return workoutValue.workoutActivityType.toString();
+  }
+
+  double getTotalDistance(List<HealthDataPoint> session) {
+    return session
+        .map((e) => (e.value as WorkoutHealthValue).totalDistance)
+        .where((value) => value != null)
+        .fold(0.0, (prev, element) => prev + element!);
   }
 }

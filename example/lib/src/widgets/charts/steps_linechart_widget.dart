@@ -18,6 +18,12 @@ class StepsLineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate maxY based on the maximum step value and round it up to the nearest 1000
+    double maxStepsValue = stepsValues.isNotEmpty
+        ? stepsValues.reduce((a, b) => a > b ? a : b)
+        : 0;
+    double maxY = ((maxStepsValue / 1000).ceil() * 1000).toDouble();
+
     return AspectRatio(
       aspectRatio: 1.2,
       child: Card(
@@ -28,7 +34,7 @@ class StepsLineChart extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           child: LineChart(
             LineChartData(
-              maxY: stepsValues.isNotEmpty ? (stepsValues.reduce((a, b) => a > b ? a : b)).toDouble() + 10 : 100,
+              maxY: maxY,
               minY: 0,
               titlesData: FlTitlesData(
                 show: true,
@@ -42,7 +48,8 @@ class StepsLineChart extends StatelessWidget {
                           axisSide: meta.axisSide,
                           child: Text(
                             date != null
-                                ? DateFormat('HH:mm').format(date!.add(Duration(hours: index)))
+                                ? DateFormat('HH:mm')
+                                    .format(date!.add(Duration(hours: index)))
                                 : '$index',
                             style: TextStyle(
                               color: AppColors.mainTextColor2,
@@ -68,6 +75,8 @@ class StepsLineChart extends StatelessWidget {
                       );
                     },
                     reservedSize: 40,
+                    interval:
+                        1000, // Use the specified interval for y-axis labels
                   ),
                 ),
                 topTitles: AxisTitles(
@@ -102,11 +111,12 @@ class StepsLineChart extends StatelessWidget {
               lineBarsData: [
                 LineChartBarData(
                   spots: List.generate(stepsValues.length, (index) {
-                    return FlSpot(index.toDouble(), stepsValues[index].toDouble());
+                    return FlSpot(
+                        index.toDouble(), stepsValues[index].toDouble());
                   }),
-                  isCurved: true,
-                  color: AppColors.contentColorRed,
-                  barWidth: 2,
+                  isCurved: false,
+                  color: AppColors.contentColorGreen,
+                  barWidth: 4,
                   isStrokeCapRound: true,
                   dotData: FlDotData(show: false),
                 ),
@@ -116,7 +126,9 @@ class StepsLineChart extends StatelessWidget {
                   getTooltipItems: (List<LineBarSpot> touchedSpots) {
                     return touchedSpots.map((barSpot) {
                       final flSpot = barSpot;
-                      final time = date != null ? date!.add(Duration(hours: flSpot.x.toInt())) : null;
+                      final time = date != null
+                          ? date!.add(Duration(hours: flSpot.x.toInt()))
+                          : null;
                       return LineTooltipItem(
                         '${time != null ? DateFormat('HH:mm').format(time) : flSpot.x.toInt()}\n${flSpot.y.toInt()}',
                         TextStyle(

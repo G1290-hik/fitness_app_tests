@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:health/health.dart';
-import 'package:health_example/src/service/health_service.dart';
+import 'package:health_example/src/service/service.dart';
 import 'package:health_example/src/utils/theme.dart';
 import 'package:health_example/src/widgets/charts/blood_pressure_candlestick_widget.dart';
 import 'package:health_example/src/widgets/charts/blood_pressure_linechart_widget.dart';
-import 'package:health_example/src/widgets/min_max_grid_widget.dart';
+import 'package:health_example/src/widgets/grid_widget.dart';
 
 class BloodPressureDetailScreen extends StatefulWidget {
   @override
@@ -14,7 +14,7 @@ class BloodPressureDetailScreen extends StatefulWidget {
 
 class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
     with SingleTickerProviderStateMixin {
-  final HealthService _healthService = HealthService();
+  final BloodPressureFetcher _bloodPressureFetcher = BloodPressureFetcher();
   List<double> _systolicValues1Day = [];
   List<double> _diastolicValues1Day = [];
   List<double> _minSystolic7Days = [];
@@ -107,99 +107,30 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
     DateTime startTime7Days = _startDate;
     DateTime startTime30Days = DateTime.now().subtract(Duration(days: 29));
 
-    List<double> systolicValues1Day = [];
-    List<double> diastolicValues1Day = [];
-    List<double> minSystolic7Days = [];
-    List<double> maxSystolic7Days = [];
-    List<double> minDiastolic7Days = [];
-    List<double> maxDiastolic7Days = [];
-    List<DateTime> dates7Days = [];
+    _systolicValues1Day = await _bloodPressureFetcher.fetchHourlySystolic(
+        startTime1Day, endTime1Day);
+    _diastolicValues1Day = await _bloodPressureFetcher.fetchHourlyDiastolic(
+        startTime1Day, endTime1Day);
 
-    List<double> minSystolic30Days = [];
-    List<double> maxSystolic30Days = [];
-    List<double> minDiastolic30Days = [];
-    List<double> maxDiastolic30Days = [];
-    List<DateTime> dates30Days = [];
+    Map<String, List<double>> bloodPressure7Days =
+        await _bloodPressureFetcher.fetchDailyBloodPressure(startTime7Days, 7);
+    _minSystolic7Days = bloodPressure7Days["minSystolic"]!;
+    _maxSystolic7Days = bloodPressure7Days["maxSystolic"]!;
+    _minDiastolic7Days = bloodPressure7Days["minDiastolic"]!;
+    _maxDiastolic7Days = bloodPressure7Days["maxDiastolic"]!;
+    _dates7Days =
+        List.generate(7, (index) => startTime7Days.add(Duration(days: index)));
 
-    // Fetch 1 day of data from midnight to current time
-    for (int i = 0; i <= endTime1Day.difference(startTime1Day).inHours; i++) {
-      DateTime hourStart = startTime1Day.add(Duration(hours: i));
-      DateTime hourEnd = hourStart.add(Duration(hours: 1));
-
-      double systolic = await _healthService.aggregateData(
-          [HealthDataType.BLOOD_PRESSURE_SYSTOLIC],
-          hourStart,
-          hourEnd,
-          (values) => values.isEmpty
-              ? 0
-              : values.reduce((a, b) => a + b) / values.length);
-      double diastolic = await _healthService.aggregateData(
-          [HealthDataType.BLOOD_PRESSURE_DIASTOLIC],
-          hourStart,
-          hourEnd,
-          (values) => values.isEmpty
-              ? 0
-              : values.reduce((a, b) => a + b) / values.length);
-
-      systolicValues1Day.add(systolic);
-      diastolicValues1Day.add(diastolic);
-    }
-
-    // Fetch 7 days of data
-    for (int i = 0; i < 7; i++) {
-      DateTime dayStart = startTime7Days.add(Duration(days: i));
-      DateTime dayEnd = dayStart.add(Duration(days: 1));
-
-      double minSystolic =
-          await _healthService.getMinSystolicBloodPressure(dayStart, dayEnd);
-      double maxSystolic =
-          await _healthService.getMaxSystolicBloodPressure(dayStart, dayEnd);
-      double minDiastolic =
-          await _healthService.getMinDiastolicBloodPressure(dayStart, dayEnd);
-      double maxDiastolic =
-          await _healthService.getMaxDiastolicBloodPressure(dayStart, dayEnd);
-
-      minSystolic7Days.add(minSystolic);
-      maxSystolic7Days.add(maxSystolic);
-      minDiastolic7Days.add(minDiastolic);
-      maxDiastolic7Days.add(maxDiastolic);
-      dates7Days.add(dayStart);
-    }
-
-    // Fetch 30 days of data
-    for (int i = 0; i < 30; i++) {
-      DateTime dayStart = startTime30Days.add(Duration(days: i));
-      DateTime dayEnd = dayStart.add(Duration(days: 1));
-
-      double minSystolic =
-          await _healthService.getMinSystolicBloodPressure(dayStart, dayEnd);
-      double maxSystolic =
-          await _healthService.getMaxSystolicBloodPressure(dayStart, dayEnd);
-      double minDiastolic =
-          await _healthService.getMinDiastolicBloodPressure(dayStart, dayEnd);
-      double maxDiastolic =
-          await _healthService.getMaxDiastolicBloodPressure(dayStart, dayEnd);
-
-      minSystolic30Days.add(minSystolic);
-      maxSystolic30Days.add(maxSystolic);
-      minDiastolic30Days.add(minDiastolic);
-      maxDiastolic30Days.add(maxDiastolic);
-      dates30Days.add(dayStart);
-    }
+    Map<String, List<double>> bloodPressure30Days = await _bloodPressureFetcher
+        .fetchDailyBloodPressure(startTime30Days, 30);
+    _minSystolic30Days = bloodPressure30Days["minSystolic"]!;
+    _maxSystolic30Days = bloodPressure30Days["maxSystolic"]!;
+    _minDiastolic30Days = bloodPressure30Days["minDiastolic"]!;
+    _maxDiastolic30Days = bloodPressure30Days["maxDiastolic"]!;
+    _dates30Days = List.generate(
+        30, (index) => startTime30Days.add(Duration(days: index)));
 
     setState(() {
-      _systolicValues1Day = systolicValues1Day;
-      _diastolicValues1Day = diastolicValues1Day;
-      _minSystolic7Days = minSystolic7Days;
-      _maxSystolic7Days = maxSystolic7Days;
-      _minDiastolic7Days = minDiastolic7Days;
-      _maxDiastolic7Days = maxDiastolic7Days;
-      _dates7Days = dates7Days;
-      _minSystolic30Days = minSystolic30Days;
-      _maxSystolic30Days = maxSystolic30Days;
-      _minDiastolic30Days = minDiastolic30Days;
-      _maxDiastolic30Days = maxDiastolic30Days;
-      _dates30Days = dates30Days;
       _isLoading = false;
       _updateMinMaxValues();
     });
@@ -243,7 +174,6 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
     );
   }
 
-//TODO:Add a row widget that let's the user switch the current day
   Widget _build1DayView() {
     List<DataItem> dataItems = [
       DataItem(
@@ -288,10 +218,10 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
               DateTime.now().year,
               DateTime.now().month,
               DateTime.now().day,
-            ), // Start date set to midnight of the current day
+            ),
           ),
         ),
-        MinMaxGridWidget(dataItems: dataItems),
+        GridWidget(dataItems: dataItems),
       ],
     );
   }
@@ -319,7 +249,7 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
             is7DayChart: false,
           ),
         ),
-        MinMaxGridWidget(dataItems: dataItems),
+        GridWidget(dataItems: dataItems),
       ],
     );
   }
@@ -347,8 +277,78 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
             barWidth: 5,
           ),
         ),
-        MinMaxGridWidget(dataItems: dataItems),
+        GridWidget(dataItems: dataItems),
       ],
     );
+  }
+}
+
+class BloodPressureFetcher {
+  final HealthService _healthService = HealthService();
+
+  Future<List<double>> fetchHourlySystolic(
+      DateTime startTime, DateTime endTime) async {
+    List<double> systolicValues = [];
+    for (int i = 0; i <= endTime.difference(startTime).inHours; i++) {
+      DateTime hourStart = startTime.add(Duration(hours: i));
+      DateTime hourEnd = hourStart.add(Duration(hours: 1));
+      double systolic = await _healthService.aggregateData(
+          [HealthDataType.BLOOD_PRESSURE_SYSTOLIC],
+          hourStart,
+          hourEnd,
+          (values) => values.isEmpty
+              ? 0
+              : values.reduce((a, b) => a + b) / values.length);
+      systolicValues.add(systolic);
+    }
+    return systolicValues;
+  }
+
+  Future<List<double>> fetchHourlyDiastolic(
+      DateTime startTime, DateTime endTime) async {
+    List<double> diastolicValues = [];
+    for (int i = 0; i <= endTime.difference(startTime).inHours; i++) {
+      DateTime hourStart = startTime.add(Duration(hours: i));
+      DateTime hourEnd = hourStart.add(Duration(hours: 1));
+      double diastolic = await _healthService.aggregateData(
+          [HealthDataType.BLOOD_PRESSURE_DIASTOLIC],
+          hourStart,
+          hourEnd,
+          (values) => values.isEmpty
+              ? 0
+              : values.reduce((a, b) => a + b) / values.length);
+      diastolicValues.add(diastolic);
+    }
+    return diastolicValues;
+  }
+
+  Future<Map<String, List<double>>> fetchDailyBloodPressure(
+      DateTime startDate, int days) async {
+    List<double> minSystolic = [];
+    List<double> maxSystolic = [];
+    List<double> minDiastolic = [];
+    List<double> maxDiastolic = [];
+    for (int i = 0; i < days; i++) {
+      DateTime dayStart = startDate.add(Duration(days: i));
+      DateTime dayEnd = dayStart.add(Duration(days: 1));
+      double minSys =
+          await _healthService.getMinSystolicBloodPressure(dayStart, dayEnd);
+      double maxSys =
+          await _healthService.getMaxSystolicBloodPressure(dayStart, dayEnd);
+      double minDia =
+          await _healthService.getMinDiastolicBloodPressure(dayStart, dayEnd);
+      double maxDia =
+          await _healthService.getMaxDiastolicBloodPressure(dayStart, dayEnd);
+      minSystolic.add(minSys);
+      maxSystolic.add(maxSys);
+      minDiastolic.add(minDia);
+      maxDiastolic.add(maxDia);
+    }
+    return {
+      "minSystolic": minSystolic,
+      "maxSystolic": maxSystolic,
+      "minDiastolic": minDiastolic,
+      "maxDiastolic": maxDiastolic,
+    };
   }
 }
