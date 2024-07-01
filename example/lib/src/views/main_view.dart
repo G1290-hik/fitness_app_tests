@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:health_example/src/service/fetcher/fetcher.dart';
 import 'package:health_example/src/utils/theme.dart';
 import 'package:health_example/src/views/view.dart';
 import 'package:health_example/src/widgets/widgets.dart';

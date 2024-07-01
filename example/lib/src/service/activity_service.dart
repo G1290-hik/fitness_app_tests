@@ -110,7 +110,11 @@ class ActivityService {
           .where((value) => value != null)
           .fold(0.0, (prev, element) => prev + element!);
 
-      String workoutType = session.first.type.toString();
+      // Accessing the workout type from the first data point in the session
+      String workoutType = (session.first.value as WorkoutHealthValue)
+          .workoutActivityType
+          .name
+          .toLowerCase();
 
       aggregatedData[sessionStart] = {
         'calories': totalCalories,

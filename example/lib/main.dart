@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:health_example/src/service/service.dart';
+import 'package:health_example/src/service/health_service.dart';
 import 'package:health_example/src/utils/util.dart';
 import 'package:health_example/src/views/view.dart';
-
-import 'src/views/authorization_screen.dart';
 
 void main() => runApp(HealthApp());
 
@@ -37,9 +35,7 @@ class _HealthAppState extends State<HealthApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: _state == AppState.AUTHORIZED
-          ? BloodPressureDetailScreen()
-          : AuthorizationScreen(),
+      home: _state == AppState.AUTHORIZED ? MainView() : AuthorizationScreen(),
     );
   }
 }

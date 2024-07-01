@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:health_example/src/service/fetcher/fetcher.dart';
 import 'package:health_example/src/utils/theme.dart';
-import 'package:health_example/src/views/steps_detail_view.dart';
 import 'package:health_example/src/widgets/charts/circular_graph.dart';
 
 class StreakWidget extends StatefulWidget {
