@@ -93,8 +93,8 @@ class _StreakWidgetState extends State<StreakWidget> {
                               MergedCircularGraphWidget(
                                 values: {
                                   'steps': dayData['steps']! / 10000,
-                                  'calories': dayData['calories']! / 800,
-                                  'distance': dayData['distance']! / 8,
+                                  'calories': dayData['calories']! / 5000,
+                                  'distance': dayData['distance']! / 10,
                                 },
                                 size: 50,
                                 alternatePadding: true,

@@ -83,8 +83,8 @@ class _MainViewState extends State<MainView> {
                             alternatePadding: false,
                             values: {
                               'steps': _currentSteps / 10000,
-                              'calories': _currentCalories / 800,
-                              'distance': _currentDistance / 8,
+                              'calories': _currentCalories / 5000,
+                              'distance': _currentDistance / 10,
                             },
                             size: 200,
                           ),
@@ -119,7 +119,7 @@ class _MainViewState extends State<MainView> {
                             GoalWidget(
                               icon: CupertinoIcons.bolt,
                               currentVal: _currentCalories,
-                              val: 800,
+                              val: 5000,
                               color: AppColors.contentColorOrange,
                               isDistance: false,
                               screen: StepDetailsScreen(),
@@ -127,7 +127,7 @@ class _MainViewState extends State<MainView> {
                             GoalWidget(
                               icon: Icons.social_distance_sharp,
                               currentVal: _currentDistance,
-                              val: 8.00,
+                              val: 10.00,
                               color: AppColors.contentColorYellow,
                               isDistance: true,
                               screen: StepDetailsScreen(),

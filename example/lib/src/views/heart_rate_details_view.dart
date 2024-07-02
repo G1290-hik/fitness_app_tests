@@ -124,6 +124,7 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen>
       child: Scaffold(
         backgroundColor: AppColors.pageBackground,
         appBar: AppBar(
+          iconTheme: IconThemeData(color: AppColors.contentColorWhite),
           backgroundColor: AppColors.pageBackground.withOpacity(0.8),
           title: Text(
             "Heart Rate",
@@ -142,7 +143,7 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen>
           ),
         ),
         body: _isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? Center(child: CircularProgressIndicator(color: AppColors.contentColorWhite,))
             : SizedBox(
                 height: MediaQuery.sizeOf(context).height,
                 width: MediaQuery.sizeOf(context).width,

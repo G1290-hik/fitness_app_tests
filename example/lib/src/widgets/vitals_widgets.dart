@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:health_example/src/service/fetcher/fetcher.dart';
 import 'package:health_example/src/utils/theme.dart';
+import 'package:health_example/src/views/blood_pressure_details_view.dart';
+import 'package:health_example/src/views/heart_rate_details_view.dart';
 
 class VitalsDetailCard extends StatelessWidget {
   final String title;
   final String value;
   final String unit;
   final String description;
+  final Widget screen;
 
   const VitalsDetailCard({
     super.key,
@@ -14,61 +17,67 @@ class VitalsDetailCard extends StatelessWidget {
     required this.value,
     required this.unit,
     required this.description,
+    required this.screen,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: AppColors.menuBackground,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title.toUpperCase(),
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.mainTextColor2,
-                fontWeight: FontWeight.bold,
+    return GestureDetector(
+      onTap: (){
+        Navigator.push(context, MaterialPageRoute(builder: (context)=> screen));
+      },
+      child: Card(
+        color: AppColors.menuBackground,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.mainTextColor2,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: value,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      color: AppColors.mainTextColor1,
-                      fontWeight: FontWeight.bold,
+              const SizedBox(height: 4),
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: value,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        color: AppColors.mainTextColor1,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  TextSpan(
-                    text: unit,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.mainTextColor2,
-                      fontWeight: FontWeight.bold,
+                    TextSpan(
+                      text: unit,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.mainTextColor2,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              description,
-              style: const TextStyle(
-                fontSize: 9,
-                color: AppColors.mainTextColor2,
+              const SizedBox(height: 8),
+              Text(
+                description,
+                style: const TextStyle(
+                  fontSize: 9,
+                  color: AppColors.mainTextColor2,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -191,15 +200,15 @@ class _VitalsDetailGridBoxState extends State<VitalsDetailGridBox> {
                         unit: " bpm",
                         description: data['heartRate'] != 'N/A'
                             ? "Last measured at ${data['heartRateTime'].hour}:${data['heartRateTime'].minute}"
-                            : "N/A",
+                            : "N/A", screen: HeartRateDetailScreen(),
                       ),
                       VitalsDetailCard(
                         title: "Blood Pressure",
-                        value: "${data['systolic']}/${data['diastolic']}",
+                        value: "${data['systolic']} / ${data['diastolic']}",
                         unit: " mmHg",
                         description: data['systolic'] != 'N/A' && data['diastolic'] != 'N/A'
                             ? "Last measured at ${data['systolicTime'].hour}:${data['systolicTime'].minute} and ${data['diastolicTime'].hour}:${data['diastolicTime'].minute}"
-                            : "N/A",
+                            : "N/A", screen: BloodPressureDetailScreen(),
                       ),
                     ],
                   ),

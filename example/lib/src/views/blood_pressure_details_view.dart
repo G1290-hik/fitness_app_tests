@@ -144,6 +144,7 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       appBar: AppBar(
+        iconTheme: IconThemeData(color: AppColors.contentColorWhite),
         title: Text(
           'Blood Pressure',
           style: TextStyle(color: AppColors.contentColorWhite),
@@ -161,7 +162,7 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
         ),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(color: AppColors.contentColorWhite,))
           : TabBarView(
               controller: _tabController,
               children: [
