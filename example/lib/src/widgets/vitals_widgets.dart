@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:health_example/src/service/fetcher/fetcher.dart';
 import 'package:health_example/src/utils/theme.dart';
-import 'package:health_example/src/views/blood_pressure_details_view.dart';
-import 'package:health_example/src/views/heart_rate_details_view.dart';
+import 'package:health_example/src/views/view.dart';
 
 class VitalsDetailCard extends StatelessWidget {
   final String title;
@@ -23,8 +22,8 @@ class VitalsDetailCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context)=> screen));
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
       },
       child: Card(
         color: AppColors.menuBackground,
@@ -110,12 +109,10 @@ class _VitalsDetailGridBoxState extends State<VitalsDetailGridBox> {
       List<Map<String, dynamic>> diastolicValues = await _bpFetcher.fetchHourlyDiastolicWithTimestamps(startOfDay, endOfDay);
       print('Diastolic data fetched: $diastolicValues');
 
-      // Fetch heart rate with timestamp
+      // Fetch heart rate data
       print('Fetching heart rate data...');
-      var latestHeartRateData = await _hrFetcher.fetchLatestHeartRate();
-      print('Heart rate data fetched: $latestHeartRateData');
-      double latestHeartRate = latestHeartRateData['value'];
-      DateTime latestHeartRateTime = latestHeartRateData['timestamp'];
+      Map<String, dynamic> heartRateData = await _hrFetcher.fetchHeartRateData(startOfDay);
+      print('Heart rate data fetched: $heartRateData');
 
       // Initialize to default values
       double lastNonZeroSystolic = 0.0;
@@ -138,24 +135,31 @@ class _VitalsDetailGridBoxState extends State<VitalsDetailGridBox> {
         }
       }
 
+      // Get the last non-zero heart rate value and time
+      List<double> heartRates = heartRateData['hourlyHeartRatesMax'] ?? [];
+      List<DateTime> heartRateTimes = heartRateData['hourlyDates'] ?? [];
+
+      double lastNonZeroHeartRate = 0.0;
+      DateTime? lastNonZeroHeartRateTime;
+      for (int i = heartRates.length - 1; i >= 0; i--) {
+        if (heartRates[i] > 0) {
+          lastNonZeroHeartRate = heartRates[i];
+          lastNonZeroHeartRateTime = heartRateTimes[i];
+          break;
+        }
+      }
+
       return {
-        'systolic': lastNonZeroSystolic > 0 ? lastNonZeroSystolic.toStringAsFixed(0) : 'N/A',
-        'systolicTime': lastSystolicTime ?? 'N/A',
-        'diastolic': lastNonZeroDiastolic > 0 ? lastNonZeroDiastolic.toStringAsFixed(0) : 'N/A',
-        'diastolicTime': lastDiastolicTime ?? 'N/A',
-        'heartRate': latestHeartRate > 0 ? latestHeartRate.toStringAsFixed(0) : 'N/A',
-        'heartRateTime': latestHeartRate > 0 ? latestHeartRateTime : 'N/A',
+        'systolic': lastNonZeroSystolic,
+        'systolicTime': lastSystolicTime,
+        'diastolic': lastNonZeroDiastolic,
+        'diastolicTime': lastDiastolicTime,
+        'heartRate': lastNonZeroHeartRate,
+        'heartRateTime': lastNonZeroHeartRateTime,
       };
     } catch (e) {
       print('Error fetching data: $e');
-      return {
-        'systolic': 'N/A',
-        'systolicTime': 'N/A',
-        'diastolic': 'N/A',
-        'diastolicTime': 'N/A',
-        'heartRate': 'N/A',
-        'heartRateTime': 'N/A',
-      };
+      return {};
     }
   }
 
@@ -167,54 +171,30 @@ class _VitalsDetailGridBoxState extends State<VitalsDetailGridBox> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          print('Snapshot error: ${snapshot.error}');
-          return Center(child: Text('Error fetching data'));
+          return Center(child: Text('Error: ${snapshot.error}'));
         } else {
-          var data = snapshot.data!;
-          return Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Vitals",
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: AppColors.mainTextColor2,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 24,
-                    children: [
-                      VitalsDetailCard(
-                        title: "Heart Rate",
-                        value: data['heartRate'],
-                        unit: " bpm",
-                        description: data['heartRate'] != 'N/A'
-                            ? "Last measured at ${data['heartRateTime'].hour}:${data['heartRateTime'].minute}"
-                            : "N/A", screen: HeartRateDetailScreen(),
-                      ),
-                      VitalsDetailCard(
-                        title: "Blood Pressure",
-                        value: "${data['systolic']} / ${data['diastolic']}",
-                        unit: " mmHg",
-                        description: data['systolic'] != 'N/A' && data['diastolic'] != 'N/A'
-                            ? "Last measured at ${data['systolicTime'].hour}:${data['systolicTime'].minute} and ${data['diastolicTime'].hour}:${data['diastolicTime'].minute}"
-                            : "N/A", screen: BloodPressureDetailScreen(),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          final data = snapshot.data ?? {};
+          return GridView.count(
+            crossAxisCount: 2,
+            crossAxisSpacing: 4.0,
+            mainAxisSpacing: 4.0,
+            shrinkWrap: true,
+            children: <Widget>[
+              VitalsDetailCard(
+                title: 'Blood Pressure',
+                value: '${data['systolic']?.toStringAsFixed(0) ?? '0'}/${data['diastolic']?.toStringAsFixed(0) ?? '0'}',
+                unit: ' mmHg',
+                description: 'Last measured: ${data['systolicTime']?.toString() ?? 'N/A'}',
+                screen: BloodPressureDetailScreen(),
+              ),
+              VitalsDetailCard(
+                title: 'Heart Rate',
+                value: '${data['heartRate']?.toStringAsFixed(0) ?? '0'}',
+                unit: ' bpm',
+                description: 'Last measured: ${data['heartRateTime']?.toString() ?? 'N/A'}',
+                screen: HeartRateDetailScreen(),
+              ),
+            ],
           );
         }
       },
