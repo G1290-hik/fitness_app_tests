@@ -61,7 +61,7 @@
     <uses-permission android:name="android.permission.health.WRITE_NUTRITION"/>
     <uses-permission android:name="android.permission.health.READ_NUTRITION"/>
 
-    <application android:label="health_example"
+    <application android:label="main_example"
         android:icon="@mipmap/ic_launcher">
         <activity android:name=".MainActivity"
             android:launchMode="singleTop"

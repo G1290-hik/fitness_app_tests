@@ -286,5 +286,37 @@ class HealthService {
     }
   }
 
+  Future<Map<String, double>> getLatestBloodPressure(
+      DateTime startTime, DateTime endTime) async {
+    List<HealthDataPoint> systolicData =
+        await getSystolicBP(startTime, endTime);
+    List<HealthDataPoint> diastolicData =
+        await getDiastolicBP(startTime, endTime);
 
+    print('Systolic Data: $systolicData');
+    print('Diastolic Data: $diastolicData');
+
+    double latestSystolic = 0;
+    double latestDiastolic = 0;
+
+    if (systolicData.isNotEmpty) {
+      latestSystolic = (systolicData.last.value as NumericHealthValue)
+          .numericValue
+          .toDouble();
+    }
+
+    if (diastolicData.isNotEmpty) {
+      latestDiastolic = (diastolicData.last.value as NumericHealthValue)
+          .numericValue
+          .toDouble();
+    }
+
+    print('Latest Systolic: $latestSystolic');
+    print('Latest Diastolic: $latestDiastolic');
+
+    return {
+      'systolic': latestSystolic,
+      'diastolic': latestDiastolic,
+    };
+  }
 }

@@ -50,7 +50,7 @@ class BloodPressureFetcher {
           [HealthDataType.BLOOD_PRESSURE_SYSTOLIC],
           hourStart,
           hourEnd,
-              (values) => values.isEmpty
+          (values) => values.isEmpty
               ? 0
               : values.reduce((a, b) => a + b) / values.length);
       systolicValues.add({'value': systolic, 'timestamp': hourEnd});
@@ -68,13 +68,14 @@ class BloodPressureFetcher {
           [HealthDataType.BLOOD_PRESSURE_DIASTOLIC],
           hourStart,
           hourEnd,
-              (values) => values.isEmpty
+          (values) => values.isEmpty
               ? 0
               : values.reduce((a, b) => a + b) / values.length);
       diastolicValues.add({'value': diastolic, 'timestamp': hourEnd});
     }
     return diastolicValues;
   }
+
   Future<Map<String, List<double>>> fetchDailyBloodPressure(
       DateTime startDate, int days) async {
     List<double> minSystolic = [];
@@ -102,6 +103,61 @@ class BloodPressureFetcher {
       "maxSystolic": maxSystolic,
       "minDiastolic": minDiastolic,
       "maxDiastolic": maxDiastolic,
+    };
+  }
+
+  Future<Map<String, double>> getLatestBloodPressure(
+      DateTime startTime, DateTime endTime) async {
+    List<HealthDataPoint> systolicData =
+        await _healthService.getSystolicBP(startTime, endTime);
+    List<HealthDataPoint> diastolicData =
+        await _healthService.getDiastolicBP(startTime, endTime);
+
+    double latestSystolic = 0;
+    double latestDiastolic = 0;
+    DateTime? latestSystolicTime;
+    DateTime? latestDiastolicTime;
+
+    if (systolicData.isNotEmpty) {
+      latestSystolic = (systolicData.last.value as NumericHealthValue)
+          .numericValue
+          .toDouble();
+      latestSystolicTime = systolicData.last.dateFrom;
+    }
+
+    if (diastolicData.isNotEmpty) {
+      latestDiastolic = (diastolicData.last.value as NumericHealthValue)
+          .numericValue
+          .toDouble();
+      latestDiastolicTime = diastolicData.last.dateFrom;
+    }
+
+    DateTime latestTimestamp =
+        latestSystolicTime?.isAfter(latestDiastolicTime ?? DateTime(1970)) ??
+                false
+            ? latestSystolicTime!
+            : latestDiastolicTime ?? DateTime.now();
+
+    return {
+      'systolic': latestSystolic,
+      'diastolic': latestDiastolic,
+      'timestamp': latestTimestamp.millisecondsSinceEpoch.toDouble(),
+    };
+  }
+
+  Future<Map<String, dynamic>> fetchLatestBloodPressure() async {
+    DateTime now = DateTime.now();
+    DateTime startOfDay = DateTime(now.year, now.month, now.day);
+    DateTime endOfDay = now;
+
+    Map<String, double> latestBp =
+        await getLatestBloodPressure(startOfDay, endOfDay);
+
+    return {
+      'systolic': latestBp['systolic'],
+      'diastolic': latestBp['diastolic'],
+      'timestamp': DateTime.fromMillisecondsSinceEpoch(
+          latestBp['timestamp']?.toInt() ?? 0),
     };
   }
 }

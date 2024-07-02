@@ -23,7 +23,8 @@ class VitalsDetailCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => screen));
       },
       child: Card(
         color: AppColors.menuBackground,
@@ -93,67 +94,26 @@ class _VitalsDetailGridBoxState extends State<VitalsDetailGridBox> {
   final HeartRateFetcher _hrFetcher = HeartRateFetcher();
 
   Future<Map<String, dynamic>> _fetchData() async {
-    DateTime now = DateTime.now();
-    DateTime startOfDay = DateTime(now.year, now.month, now.day);
-    DateTime endOfDay = startOfDay.add(Duration(days: 1)).subtract(Duration(seconds: 1));
-
     try {
-      // Fetch systolic and diastolic blood pressure with timestamps
-      print('Fetching systolic blood pressure data...');
-      List<Map<String, dynamic>> systolicValues = await _bpFetcher.fetchHourlySystolicWithTimestamps(startOfDay, endOfDay);
-      print('Systolic data fetched: $systolicValues');
+      // Fetch latest systolic and diastolic blood pressure
+      print('Fetching latest blood pressure data...');
+      Map<String, dynamic> latestBpData =
+          await _bpFetcher.fetchLatestBloodPressure();
+      print('Blood pressure data fetched: $latestBpData');
 
-      print('Fetching diastolic blood pressure data...');
-      List<Map<String, dynamic>> diastolicValues = await _bpFetcher.fetchHourlyDiastolicWithTimestamps(startOfDay, endOfDay);
-      print('Diastolic data fetched: $diastolicValues');
-
-      // Fetch heart rate data
-      print('Fetching heart rate data...');
-      Map<String, dynamic> heartRateData = await _hrFetcher.fetchHeartRateData(startOfDay);
-      print('Heart rate data fetched: $heartRateData');
-
-      // Initialize to default values
-      double lastNonZeroSystolic = 0.0;
-      DateTime? lastSystolicTime;
-      for (var data in systolicValues.reversed) {
-        if (data['value'] > 0) {
-          lastNonZeroSystolic = data['value'];
-          lastSystolicTime = data['timestamp'];
-          break;
-        }
-      }
-
-      double lastNonZeroDiastolic = 0.0;
-      DateTime? lastDiastolicTime;
-      for (var data in diastolicValues.reversed) {
-        if (data['value'] > 0) {
-          lastNonZeroDiastolic = data['value'];
-          lastDiastolicTime = data['timestamp'];
-          break;
-        }
-      }
-
-      // Get the last non-zero heart rate value and time
-      List<double> heartRates = heartRateData['hourlyHeartRatesMax'] ?? [];
-      List<DateTime> heartRateTimes = heartRateData['hourlyDates'] ?? [];
-
-      double lastNonZeroHeartRate = 0.0;
-      DateTime? lastNonZeroHeartRateTime;
-      for (int i = heartRates.length - 1; i >= 0; i--) {
-        if (heartRates[i] > 0) {
-          lastNonZeroHeartRate = heartRates[i];
-          lastNonZeroHeartRateTime = heartRateTimes[i];
-          break;
-        }
-      }
+      // Fetch latest heart rate data
+      print('Fetching latest heart rate data...');
+      Map<String, dynamic> latestHrData =
+          await _hrFetcher.fetchLatestHeartRate();
+      print('Heart rate data fetched: $latestHrData');
 
       return {
-        'systolic': lastNonZeroSystolic,
-        'systolicTime': lastSystolicTime,
-        'diastolic': lastNonZeroDiastolic,
-        'diastolicTime': lastDiastolicTime,
-        'heartRate': lastNonZeroHeartRate,
-        'heartRateTime': lastNonZeroHeartRateTime,
+        'systolic': latestBpData['systolic'],
+        'systolicTime': latestBpData['timestamp'],
+        'diastolic': latestBpData['diastolic'],
+        'diastolicTime': latestBpData['timestamp'],
+        'heartRate': latestHrData['heartRate'],
+        'heartRateTime': latestHrData['timestamp'],
       };
     } catch (e) {
       print('Error fetching data: $e');
@@ -180,16 +140,19 @@ class _VitalsDetailGridBoxState extends State<VitalsDetailGridBox> {
             children: <Widget>[
               VitalsDetailCard(
                 title: 'Blood Pressure',
-                value: '${data['systolic']?.toStringAsFixed(0) ?? '0'}/${data['diastolic']?.toStringAsFixed(0) ?? '0'}',
+                value:
+                    '${data['systolic']?.toStringAsFixed(0) ?? '0'}/${data['diastolic']?.toStringAsFixed(0) ?? '0'}',
                 unit: ' mmHg',
-                description: 'Last measured: ${data['systolicTime']?.toString() ?? 'N/A'}',
+                description:
+                    'Last measured: ${data['diastolicTime']?.toString() ?? 'N/A'}',
                 screen: BloodPressureDetailScreen(),
               ),
               VitalsDetailCard(
                 title: 'Heart Rate',
                 value: '${data['heartRate']?.toStringAsFixed(0) ?? '0'}',
                 unit: ' bpm',
-                description: 'Last measured: ${data['heartRateTime']?.toString() ?? 'N/A'}',
+                description:
+                    'Last measured: ${data['heartRateTime']?.toString() ?? 'N/A'}',
                 screen: HeartRateDetailScreen(),
               ),
             ],
