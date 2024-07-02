@@ -286,10 +286,5 @@ class HealthService {
     }
   }
 
-  Future<double> fetchLatestHeartRate() async {
-    DateTime now = DateTime.now();
-    DateTime oneHourAgo = now.subtract(Duration(hours: 1));
-    double latestHeartRate = await getLatestHeartRate(oneHourAgo, now);
-    return latestHeartRate;
-  }
+
 }

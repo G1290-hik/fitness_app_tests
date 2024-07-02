@@ -85,44 +85,69 @@ class VitalsDetailGridBox extends StatefulWidget {
 class _VitalsDetailGridBoxState extends State<VitalsDetailGridBox> {
   final BloodPressureFetcher _bpFetcher = BloodPressureFetcher();
   final HeartRateFetcher _hrFetcher = HeartRateFetcher();
-  final StepDataFetcher _stepFetcher = StepDataFetcher();
 
   Future<Map<String, dynamic>> _fetchData() async {
     DateTime now = DateTime.now();
     DateTime startOfDay = DateTime(now.year, now.month, now.day);
-    DateTime endOfDay =
-        startOfDay.add(Duration(days: 1)).subtract(Duration(seconds: 1));
+    DateTime endOfDay = startOfDay.add(Duration(days: 1)).subtract(Duration(seconds: 1));
 
-    // Fetch systolic and diastolic blood pressure
-    List<double> systolicValues =
-        await _bpFetcher.fetchHourlySystolic(startOfDay, endOfDay);
-    List<double> diastolicValues =
-        await _bpFetcher.fetchHourlyDiastolic(startOfDay, endOfDay);
+    try {
+      // Fetch systolic and diastolic blood pressure with timestamps
+      print('Fetching systolic blood pressure data...');
+      List<Map<String, dynamic>> systolicValues = await _bpFetcher.fetchHourlySystolicWithTimestamps(startOfDay, endOfDay);
+      print('Systolic data fetched: $systolicValues');
 
-    // Fetch heart rate
-    double latestHeartRate = await _hrFetcher.fetchLatestHeartRate();
+      print('Fetching diastolic blood pressure data...');
+      List<Map<String, dynamic>> diastolicValues = await _bpFetcher.fetchHourlyDiastolicWithTimestamps(startOfDay, endOfDay);
+      print('Diastolic data fetched: $diastolicValues');
 
-    // Fetch steps and calories
-    List<double> stepsValues = await _stepFetcher.fetchStepsData(
-        startOfDay, endOfDay, Duration(hours: 1));
-    List<double> caloriesValues = await _stepFetcher.fetchCaloriesData(
-        startOfDay, endOfDay, Duration(hours: 1));
+      // Fetch heart rate with timestamp
+      print('Fetching heart rate data...');
+      var latestHeartRateData = await _hrFetcher.fetchLatestHeartRate();
+      print('Heart rate data fetched: $latestHeartRateData');
+      double latestHeartRate = latestHeartRateData['value'];
+      DateTime latestHeartRateTime = latestHeartRateData['timestamp'];
 
-    return {
-      'systolic': systolicValues.isNotEmpty
-          ? systolicValues.last.toStringAsFixed(0)
-          : '0.0',
-      'diastolic': diastolicValues.isNotEmpty
-          ? diastolicValues.last.toStringAsFixed(0)
-          : '0.0',
-      'heartRate': latestHeartRate.toStringAsFixed(0),
-      'steps': stepsValues.isNotEmpty
-          ? stepsValues.reduce((a, b) => a + b).toStringAsFixed(0)
-          : '0',
-      'calories': caloriesValues.isNotEmpty
-          ? caloriesValues.reduce((a, b) => a + b).toStringAsFixed(0)
-          : '0',
-    };
+      // Initialize to default values
+      double lastNonZeroSystolic = 0.0;
+      DateTime? lastSystolicTime;
+      for (var data in systolicValues.reversed) {
+        if (data['value'] > 0) {
+          lastNonZeroSystolic = data['value'];
+          lastSystolicTime = data['timestamp'];
+          break;
+        }
+      }
+
+      double lastNonZeroDiastolic = 0.0;
+      DateTime? lastDiastolicTime;
+      for (var data in diastolicValues.reversed) {
+        if (data['value'] > 0) {
+          lastNonZeroDiastolic = data['value'];
+          lastDiastolicTime = data['timestamp'];
+          break;
+        }
+      }
+
+      return {
+        'systolic': lastNonZeroSystolic > 0 ? lastNonZeroSystolic.toStringAsFixed(0) : 'N/A',
+        'systolicTime': lastSystolicTime ?? 'N/A',
+        'diastolic': lastNonZeroDiastolic > 0 ? lastNonZeroDiastolic.toStringAsFixed(0) : 'N/A',
+        'diastolicTime': lastDiastolicTime ?? 'N/A',
+        'heartRate': latestHeartRate > 0 ? latestHeartRate.toStringAsFixed(0) : 'N/A',
+        'heartRateTime': latestHeartRate > 0 ? latestHeartRateTime : 'N/A',
+      };
+    } catch (e) {
+      print('Error fetching data: $e');
+      return {
+        'systolic': 'N/A',
+        'systolicTime': 'N/A',
+        'diastolic': 'N/A',
+        'diastolicTime': 'N/A',
+        'heartRate': 'N/A',
+        'heartRateTime': 'N/A',
+      };
+    }
   }
 
   @override
@@ -133,6 +158,7 @@ class _VitalsDetailGridBoxState extends State<VitalsDetailGridBox> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
+          print('Snapshot error: ${snapshot.error}');
           return Center(child: Text('Error fetching data'));
         } else {
           var data = snapshot.data!;
@@ -159,36 +185,21 @@ class _VitalsDetailGridBoxState extends State<VitalsDetailGridBox> {
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 24,
                     children: [
-                      //TODO - Create the Sleep Detail Page
-                      // VitalsDetailCard(
-                      //   title: "Sleep",
-                      //   value: "7h 4m",
-                      //   unit: "",
-                      //   description: "Slept at 00:06 AM",
-                      // ),
                       VitalsDetailCard(
                         title: "Heart Rate",
                         value: data['heartRate'],
                         unit: " bpm",
-                        description: "Last measured just now",
+                        description: data['heartRate'] != 'N/A'
+                            ? "Last measured at ${data['heartRateTime'].hour}:${data['heartRateTime'].minute}"
+                            : "N/A",
                       ),
                       VitalsDetailCard(
                         title: "Blood Pressure",
                         value: "${data['systolic']}/${data['diastolic']}",
                         unit: " mmHg",
-                        description: "Last measured just now",
-                      ),
-                      VitalsDetailCard(
-                        title: "Steps",
-                        value: data['steps'],
-                        unit: " steps",
-                        description: "Last measured just now",
-                      ),
-                      VitalsDetailCard(
-                        title: "Calories Burned",
-                        value: data['calories'],
-                        unit: " kcal",
-                        description: "Last measured just now",
+                        description: data['systolic'] != 'N/A' && data['diastolic'] != 'N/A'
+                            ? "Last measured at ${data['systolicTime'].hour}:${data['systolicTime'].minute} and ${data['diastolicTime'].hour}:${data['diastolicTime'].minute}"
+                            : "N/A",
                       ),
                     ],
                   ),

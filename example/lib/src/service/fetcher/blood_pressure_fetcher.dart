@@ -40,6 +40,41 @@ class BloodPressureFetcher {
     return diastolicValues;
   }
 
+  Future<List<Map<String, dynamic>>> fetchHourlySystolicWithTimestamps(
+      DateTime startTime, DateTime endTime) async {
+    List<Map<String, dynamic>> systolicValues = [];
+    for (int i = 0; i <= endTime.difference(startTime).inHours; i++) {
+      DateTime hourStart = startTime.add(Duration(hours: i));
+      DateTime hourEnd = hourStart.add(Duration(hours: 1));
+      double systolic = await _healthService.aggregateData(
+          [HealthDataType.BLOOD_PRESSURE_SYSTOLIC],
+          hourStart,
+          hourEnd,
+              (values) => values.isEmpty
+              ? 0
+              : values.reduce((a, b) => a + b) / values.length);
+      systolicValues.add({'value': systolic, 'timestamp': hourEnd});
+    }
+    return systolicValues;
+  }
+
+  Future<List<Map<String, dynamic>>> fetchHourlyDiastolicWithTimestamps(
+      DateTime startTime, DateTime endTime) async {
+    List<Map<String, dynamic>> diastolicValues = [];
+    for (int i = 0; i <= endTime.difference(startTime).inHours; i++) {
+      DateTime hourStart = startTime.add(Duration(hours: i));
+      DateTime hourEnd = hourStart.add(Duration(hours: 1));
+      double diastolic = await _healthService.aggregateData(
+          [HealthDataType.BLOOD_PRESSURE_DIASTOLIC],
+          hourStart,
+          hourEnd,
+              (values) => values.isEmpty
+              ? 0
+              : values.reduce((a, b) => a + b) / values.length);
+      diastolicValues.add({'value': diastolic, 'timestamp': hourEnd});
+    }
+    return diastolicValues;
+  }
   Future<Map<String, List<double>>> fetchDailyBloodPressure(
       DateTime startDate, int days) async {
     List<double> minSystolic = [];

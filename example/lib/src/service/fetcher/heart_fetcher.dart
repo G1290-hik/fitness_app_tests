@@ -1,3 +1,4 @@
+import 'package:health/health.dart';
 import 'package:health_example/src/service/health_service.dart';
 
 class HeartRateFetcher {
@@ -30,9 +31,9 @@ class HeartRateFetcher {
       DateTime dayEnd = dayStart.add(Duration(days: 1));
 
       double minHeartRate =
-          await _healthService.getMinHeartRate(dayStart, dayEnd);
+      await _healthService.getMinHeartRate(dayStart, dayEnd);
       double maxHeartRate =
-          await _healthService.getMaxHeartRate(dayStart, dayEnd);
+      await _healthService.getMaxHeartRate(dayStart, dayEnd);
 
       minHeartRates7Days.add(minHeartRate > 0 ? minHeartRate : 0);
       maxHeartRates7Days.add(maxHeartRate > 0 ? maxHeartRate : 0);
@@ -52,9 +53,9 @@ class HeartRateFetcher {
       DateTime dayEnd = dayStart.add(Duration(days: 1));
 
       double minHeartRate =
-          await _healthService.getMinHeartRate(dayStart, dayEnd);
+      await _healthService.getMinHeartRate(dayStart, dayEnd);
       double maxHeartRate =
-          await _healthService.getMaxHeartRate(dayStart, dayEnd);
+      await _healthService.getMaxHeartRate(dayStart, dayEnd);
 
       minHeartRates30Days.add(minHeartRate > 0 ? minHeartRate : 0);
       maxHeartRates30Days.add(maxHeartRate > 0 ? maxHeartRate : 0);
@@ -76,9 +77,9 @@ class HeartRateFetcher {
       DateTime hourEnd = hourStart.add(Duration(hours: 1));
 
       double minHeartRate =
-          await _healthService.getMinHeartRate(hourStart, hourEnd);
+      await _healthService.getMinHeartRate(hourStart, hourEnd);
       double maxHeartRate =
-          await _healthService.getMaxHeartRate(hourStart, hourEnd);
+      await _healthService.getMaxHeartRate(hourStart, hourEnd);
 
       hourlyHeartRatesMin.add(minHeartRate > 0 ? minHeartRate : 0);
       hourlyHeartRatesMax.add(maxHeartRate > 0 ? maxHeartRate : 0);
@@ -100,12 +101,32 @@ class HeartRateFetcher {
     };
   }
 
-  // Add this new method to fetch the latest heart rate measurement
-  Future<double> fetchLatestHeartRate() async {
+  Future<Map<String, dynamic>> fetchLatestHeartRate() async {
     DateTime now = DateTime.now();
     DateTime oneHourAgo = now.subtract(Duration(hours: 1));
-    double latestHeartRate =
-        await _healthService.getLatestHeartRate(oneHourAgo, now);
-    return latestHeartRate;
+    List<HealthDataPoint> heartRateData =
+    await _healthService.getHeartRate(oneHourAgo, now);
+
+    if (heartRateData.isNotEmpty) {
+      final latestHeartRatePoint = heartRateData.last;
+      if (latestHeartRatePoint.value is NumericHealthValue) {
+        double latestHeartRate = (latestHeartRatePoint.value as NumericHealthValue)
+            .numericValue
+            .toDouble();
+        DateTime timestamp = latestHeartRatePoint.dateTo;
+        return {
+          'heartRate': latestHeartRate,
+          'timestamp': timestamp,
+        };
+      } else {
+        throw TypeError();
+      }
+    } else {
+      print("No heart rate data available");
+      return {
+        'heartRate': 0.0,
+        'timestamp': DateTime.now(),
+      };
+    }
   }
 }
