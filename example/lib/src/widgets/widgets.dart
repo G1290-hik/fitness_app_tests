@@ -5,3 +5,4 @@ export 'goal_widget.dart';
 export 'grid_widget.dart';
 export 'streak_widget.dart';
 export 'vitals_widgets.dart';
+export 'activity_widget.dart';

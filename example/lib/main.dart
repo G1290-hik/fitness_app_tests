@@ -35,7 +35,7 @@ class _HealthAppState extends State<HealthApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: _state == AppState.AUTHORIZED ? MainView() : AuthorizationScreen(),
+      home: SafeArea(child: _state == AppState.AUTHORIZED ? MainView() : AuthorizationScreen()),
     );
   }
 }

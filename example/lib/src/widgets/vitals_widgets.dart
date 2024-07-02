@@ -44,7 +44,6 @@ class VitalsDetailCard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 4),
               RichText(
                 text: TextSpan(
                   children: [
@@ -59,7 +58,7 @@ class VitalsDetailCard extends StatelessWidget {
                     TextSpan(
                       text: unit,
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         color: AppColors.mainTextColor2,
                         fontWeight: FontWeight.bold,
                       ),
@@ -67,11 +66,10 @@ class VitalsDetailCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
               Text(
                 description,
                 style: const TextStyle(
-                  fontSize: 9,
+                  fontSize: 10,
                   color: AppColors.mainTextColor2,
                 ),
               ),

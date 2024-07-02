@@ -154,6 +154,7 @@ class _BloodPressureDetailScreenState extends State<BloodPressureDetailScreen>
           controller: _tabController,
           unselectedLabelColor: AppColors.contentColorWhite,
           labelColor: AppColors.contentColorPink,
+          indicatorColor: AppColors.contentColorWhite,
           tabs: [
             Tab(text: '1 Day'),
             Tab(text: '7 Days'),

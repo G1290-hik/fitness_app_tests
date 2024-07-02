@@ -102,6 +102,7 @@ class _StepDetailsScreenState extends State<StepDetailsScreen>
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       appBar: AppBar(
+        iconTheme: IconThemeData(color: AppColors.contentColorWhite),
         title:
             Text('Steps', style: TextStyle(color: AppColors.contentColorWhite)),
         backgroundColor: AppColors.pageBackground,
@@ -109,6 +110,7 @@ class _StepDetailsScreenState extends State<StepDetailsScreen>
           controller: _tabController,
           unselectedLabelColor: AppColors.contentColorWhite,
           labelColor: AppColors.contentColorGreen,
+          indicatorColor: AppColors.contentColorWhite,
           tabs: [
             Tab(text: '1 Day'),
             Tab(text: '7 Days'),

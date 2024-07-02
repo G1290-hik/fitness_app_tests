@@ -50,6 +50,7 @@ class _ActivityHistoryScreenState extends State<ActivityHistoryScreen> {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       appBar: AppBar(
+        iconTheme: IconThemeData(color: AppColors.contentColorWhite),
         title: Text(
           "Workouts",
           style: TextStyle(color: AppColors.mainTextColor1),
