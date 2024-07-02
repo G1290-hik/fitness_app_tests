@@ -3,6 +3,8 @@ import 'package:health_example/src/service/fetcher/fetcher.dart';
 import 'package:health_example/src/utils/theme.dart';
 import 'package:health_example/src/widgets/charts/circular_graph.dart';
 
+import '../views/streak_detail_view.dart';
+
 class StreakWidget extends StatefulWidget {
   const StreakWidget({
     super.key,
@@ -36,7 +38,7 @@ class _StreakWidgetState extends State<StreakWidget> {
 
     for (int i = 6; i >= 0; i--) {
       DateTime dayStart =
-          DateTime(now.year, now.month, now.day).subtract(Duration(days: i));
+      DateTime(now.year, now.month, now.day).subtract(Duration(days: i));
       DateTime dayEnd = dayStart.add(Duration(days: 1));
 
       List<double> stepsValues = await _stepDataFetcher.fetchStepsData(
@@ -45,7 +47,7 @@ class _StreakWidgetState extends State<StreakWidget> {
           dayStart, dayEnd, Duration(days: 1));
 
       double totalSteps =
-          stepsValues.isNotEmpty ? stepsValues.reduce((a, b) => a + b) : 0;
+      stepsValues.isNotEmpty ? stepsValues.reduce((a, b) => a + b) : 0;
       double totalCalories = caloriesValues.isNotEmpty
           ? caloriesValues.reduce((a, b) => a + b)
           : 0;
@@ -64,6 +66,18 @@ class _StreakWidgetState extends State<StreakWidget> {
     });
   }
 
+  void _onDayTapped() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => StreakDetailScreen(
+          weeklyData: _weeklyData,
+          weekDays: widget.weekDays,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -80,38 +94,39 @@ class _StreakWidgetState extends State<StreakWidget> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Expanded(
+            GestureDetector(
+              onTap: _onDayTapped,
               child: _isLoading
                   ? Center(child: CircularProgressIndicator())
                   : Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: List.generate(7, (index) {
-                        Map<String, double> dayData = _weeklyData[index];
-                        return Flexible(
-                          child: Column(
-                            children: [
-                              MergedCircularGraphWidget(
-                                values: {
-                                  'steps': dayData['steps']! / 10000,
-                                  'calories': dayData['calories']! / 5000,
-                                  'distance': dayData['distance']! / 10,
-                                },
-                                size: 50,
-                                alternatePadding: true,
-                                width: 4,
-                              ),
-                              Text(
-                                widget.weekDays[index],
-                                style: const TextStyle(
-                                  color: AppColors.mainTextColor2,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(7, (index) {
+                  Map<String, double> dayData = _weeklyData[index];
+                  return Flexible(
+                    child: Column(
+                      children: [
+                        MergedCircularGraphWidget(
+                          values: {
+                            'steps': dayData['steps']! / 10000,
+                            'calories': dayData['calories']! / 5000,
+                            'distance': dayData['distance']! / 10,
+                          },
+                          size: 50,
+                          alternatePadding: true,
+                          width: 4,
+                        ),
+                        Text(
+                          widget.weekDays[index],
+                          style: const TextStyle(
+                            color: AppColors.mainTextColor2,
+                            fontSize: 12,
                           ),
-                        );
-                      }),
+                        ),
+                      ],
                     ),
+                  );
+                }),
+              ),
             ),
           ],
         ),
