@@ -65,7 +65,8 @@ class BarChartWidget extends StatelessWidget {
 
   String _getBottomTitle(double value) {
     int index = value.toInt();
-    if (index % interval != 0) return ''; // Show title only for specified interval
+    if (index % interval != 0)
+      return ''; // Show title only for specified interval
     if (index < 0 || index >= sleepData.length) return '';
     DateTime date = sleepData[index].dateFrom;
     return DateFormat('dd MMM').format(date);
@@ -87,7 +88,8 @@ class BarChartWidget extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 return Text(
                   _getYAxisLabel(value),
-                  style: TextStyle(color:AppColors.contentColorWhite, fontSize: 10),
+                  style: TextStyle(
+                      color: AppColors.contentColorWhite, fontSize: 10),
                 );
               },
             ),
@@ -97,10 +99,12 @@ class BarChartWidget extends StatelessWidget {
               showTitles: true,
               reservedSize: 30,
               getTitlesWidget: (value, meta) {
-                print("Bottom title value: $value"); // Debug print for each value
+                print(
+                    "Bottom title value: $value"); // Debug print for each value
                 return Text(
                   _getBottomTitle(value),
-                  style: TextStyle(color: AppColors.contentColorWhite, fontSize: 10),
+                  style: TextStyle(
+                      color: AppColors.contentColorWhite, fontSize: 10),
                 );
               },
               interval: interval,
@@ -119,8 +123,9 @@ class BarChartWidget extends StatelessWidget {
           touchTooltipData: BarTouchTooltipData(
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               Duration duration = Duration(minutes: rod.toY.toInt());
+              DateTime date = sleepData[group.x.toInt()].dateFrom;
               return BarTooltipItem(
-                _formatDuration(duration),
+                '${DateFormat('dd MMM').format(date)}\n${_formatDuration(duration)}',
                 TextStyle(color: Colors.white),
               );
             },

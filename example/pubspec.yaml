@@ -16,6 +16,9 @@ dependencies:
   health: ^10.2.0
   geekyants_flutter_gauges: ^1.0.4
   fl_chart: ^0.68.0
+  number_selector: ^1.0.7
+  fluentui_system_icons: ^1.1.246
+  shared_preferences: ^2.2.3
 
 dev_dependencies:
   flutter_test:

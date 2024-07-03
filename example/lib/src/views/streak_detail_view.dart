@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Add this import for date formatting
 import 'package:health_example/src/utils/theme.dart';
 import 'package:health_example/src/widgets/charts/circular_graph.dart';
+import 'package:intl/intl.dart'; // Add this import for date formatting
 
 class StreakDetailScreen extends StatefulWidget {
   final List<Map<String, double>> weeklyData;
   final List<String> weekDays;
-
+  final double goalSteps;
+  final double goalCalories;
+  final double goalDistance;
   const StreakDetailScreen({
     super.key,
     required this.weeklyData,
     required this.weekDays,
+    required this.goalSteps,
+    required this.goalCalories,
+    required this.goalDistance,
   });
 
   @override
@@ -37,13 +42,16 @@ class _StreakDetailScreenState extends State<StreakDetailScreen> {
 
   String getDateFromIndex(int index) {
     final now = DateTime.now();
-    final day = now.subtract(Duration(days: widget.weeklyData.length - index - 1));
+    final day =
+        now.subtract(Duration(days: widget.weeklyData.length - index - 1));
     return DateFormat('EEE, MMM d').format(day);
   }
 
   String getAchievedText(double achievedValue, double goalValue) {
     final percentage = achievedValue / goalValue * 100;
-    return percentage > 100 ? "Completed" : "${percentage.toStringAsFixed(2)}% ACHIEVED";
+    return percentage > 100
+        ? "Completed"
+        : "${percentage.toStringAsFixed(2)}% ACHIEVED";
   }
 
   @override
@@ -53,7 +61,8 @@ class _StreakDetailScreenState extends State<StreakDetailScreen> {
       appBar: AppBar(
         iconTheme: IconThemeData(color: AppColors.contentColorWhite),
         backgroundColor: AppColors.pageBackground,
-        title: const Text('Detail Screen', style: TextStyle(color: AppColors.mainTextColor1)),
+        title: const Text('Detail Screen',
+            style: TextStyle(color: AppColors.mainTextColor1)),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -82,9 +91,11 @@ class _StreakDetailScreenState extends State<StreakDetailScreen> {
                       children: [
                         MergedCircularGraphWidget(
                           values: {
-                            'steps': dayData['steps']! / 10000,
-                            'calories': dayData['calories']! / 5000,
-                            'distance': dayData['distance']! / 10,
+                            'steps': dayData['steps']! / widget.goalSteps,
+                            'calories':
+                                dayData['calories']! / widget.goalCalories,
+                            'distance':
+                                dayData['distance']! / widget.goalDistance,
                           },
                           size: 50,
                           alternatePadding: true,
@@ -123,9 +134,11 @@ class _StreakDetailScreenState extends State<StreakDetailScreen> {
                     const SizedBox(height: 16),
                     MergedCircularGraphWidget(
                       values: {
-                        'steps': selectedData!['steps']! / 10000,
-                        'calories': selectedData!['calories']! / 5000,
-                        'distance': selectedData!['distance']! / 10,
+                        'steps': selectedData!['steps']! / widget.goalSteps,
+                        'calories':
+                            selectedData!['calories']! / widget.goalCalories,
+                        'distance':
+                            selectedData!['distance']! / widget.goalDistance,
                       },
                       size: 200,
                       alternatePadding: false,
@@ -140,14 +153,15 @@ class _StreakDetailScreenState extends State<StreakDetailScreen> {
                       ),
                     ),
                     Text(
-                      '${selectedData!['steps']?.toStringAsFixed(0)} / 10000',
+                      '${selectedData!['steps']?.toStringAsFixed(0)} / ${widget.goalSteps}',
                       style: const TextStyle(
                         fontSize: 32,
                         color: AppColors.mainTextColor1,
                       ),
                     ),
                     Text(
-                      getAchievedText(selectedData!['steps']!, 10000),
+                      getAchievedText(
+                          selectedData!['steps']!, widget.goalSteps),
                       style: const TextStyle(
                         fontSize: 18,
                         color: AppColors.mainTextColor2,
@@ -162,14 +176,15 @@ class _StreakDetailScreenState extends State<StreakDetailScreen> {
                       ),
                     ),
                     Text(
-                      '${selectedData!['calories']?.toStringAsFixed(0)} / 5000 kcal',
+                      '${selectedData!['calories']?.toStringAsFixed(0)} / ${widget.goalCalories}',
                       style: const TextStyle(
                         fontSize: 32,
                         color: AppColors.mainTextColor1,
                       ),
                     ),
                     Text(
-                      getAchievedText(selectedData!['calories']!, 5000),
+                      getAchievedText(
+                          selectedData!['calories']!, widget.goalCalories),
                       style: const TextStyle(
                         fontSize: 18,
                         color: AppColors.mainTextColor2,
@@ -184,14 +199,15 @@ class _StreakDetailScreenState extends State<StreakDetailScreen> {
                       ),
                     ),
                     Text(
-                      '${selectedData!['distance']?.toStringAsFixed(2)} / 10 km',
+                      '${selectedData!['distance']?.toStringAsFixed(2)} / ${widget.goalDistance}',
                       style: const TextStyle(
                         fontSize: 32,
                         color: AppColors.mainTextColor1,
                       ),
                     ),
                     Text(
-                      getAchievedText(selectedData!['distance']!, 10),
+                      getAchievedText(
+                          selectedData!['distance']!, widget.goalSteps),
                       style: const TextStyle(
                         fontSize: 18,
                         color: AppColors.mainTextColor2,

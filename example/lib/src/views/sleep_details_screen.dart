@@ -64,13 +64,14 @@ class _SleepDetailScreenState extends State<SleepDetailScreen>
     double maxY = 0.0;
     for (var dataPoint in sleepData) {
       if (dataPoint.value is NumericHealthValue) {
-        double value = (dataPoint.value as NumericHealthValue).numericValue.toDouble();
+        double value =
+            (dataPoint.value as NumericHealthValue).numericValue.toDouble();
         if (value > maxY) {
           maxY = value;
         }
       }
     }
-    return maxY + 60;
+    return maxY + 120;
   }
 
   @override
@@ -80,12 +81,15 @@ class _SleepDetailScreenState extends State<SleepDetailScreen>
       appBar: AppBar(
         backgroundColor: AppColors.pageBackground,
         iconTheme: IconThemeData(color: AppColors.contentColorWhite),
-        title: Text('Sleep Details',style: TextStyle(color: AppColors.mainTextColor1),),
+        title: Text(
+          'Sleep Details',
+          style: TextStyle(color: AppColors.mainTextColor1),
+        ),
         bottom: TabBar(
           controller: _tabController,
           unselectedLabelColor: AppColors.contentColorWhite,
           indicatorColor: AppColors.contentColorWhite,
-          labelColor: AppColors.contentColorOrange,
+          labelColor: AppColors.contentColorPurple,
           tabs: [
             Tab(text: '7 Days'),
             Tab(text: '30 Days'),
@@ -93,36 +97,39 @@ class _SleepDetailScreenState extends State<SleepDetailScreen>
         ),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: AppColors.contentColorWhite,))
+          ? Center(
+              child: CircularProgressIndicator(
+              color: AppColors.contentColorWhite,
+            ))
           : TabBarView(
-        controller: _tabController,
-        children: [
-          SleepDataWidget(
-            sleepData: _getFilteredData(days: 7),
-            maxY: _getMaxY(_getFilteredData(days: 7)),
-            touchedIndex: _touchedIndex,
-            onBarTouched: (index) {
-              setState(() {
-                _touchedIndex = index;
-              });
-            },
-            days: 7,
-            interval: 1,
-          ),
-          SleepDataWidget(
-            sleepData: _getFilteredData(days: 30),
-            maxY: _getMaxY(_getFilteredData(days: 30)),
-            touchedIndex: _touchedIndex,
-            onBarTouched: (index) {
-              setState(() {
-                _touchedIndex = index;
-              });
-            },
-            days: 30,
-            interval: 6,
-          ),
-        ],
-      ),
+              controller: _tabController,
+              children: [
+                SleepDataWidget(
+                  sleepData: _getFilteredData(days: 7),
+                  maxY: _getMaxY(_getFilteredData(days: 7)),
+                  touchedIndex: _touchedIndex,
+                  onBarTouched: (index) {
+                    setState(() {
+                      _touchedIndex = index;
+                    });
+                  },
+                  days: 7,
+                  interval: 1,
+                ),
+                SleepDataWidget(
+                  sleepData: _getFilteredData(days: 30),
+                  maxY: _getMaxY(_getFilteredData(days: 30)),
+                  touchedIndex: _touchedIndex,
+                  onBarTouched: (index) {
+                    setState(() {
+                      _touchedIndex = index;
+                    });
+                  },
+                  days: 30,
+                  interval: 6,
+                ),
+              ],
+            ),
     );
   }
 }

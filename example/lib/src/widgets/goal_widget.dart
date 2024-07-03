@@ -1,3 +1,4 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:health_example/src/utils/theme.dart';
@@ -28,17 +29,17 @@ class GoalWidget extends StatelessWidget {
           color: color,
         ),
         Text(
-            currentVal.toStringAsFixed(isDistance ? 2 : 0),
-            style: TextStyle(
-                fontSize: 24, color: color, fontWeight: FontWeight.bold),
+          currentVal.toStringAsFixed(isDistance ? 2 : 0),
+          style: TextStyle(
+              fontSize: 24, color: color, fontWeight: FontWeight.bold),
         ),
         RichText(
           text: TextSpan(
-            text: '/${val.toStringAsFixed(0)}' ,
+            text: '/${val.toStringAsFixed(isDistance ? 1 : 0)}',
             children: [
               TextSpan(
                 text: unit,
-                style: TextStyle(color: color.withOpacity(0.5),fontSize: 14),
+                style: TextStyle(color: color.withOpacity(0.5), fontSize: 14),
               ),
             ],
             style: TextStyle(
@@ -56,13 +57,22 @@ class GoalGridBoxWidget extends StatelessWidget {
     required double currentSteps,
     required double currentCalories,
     required double currentDistance,
+    required double goalSteps,
+    required double goalCalories,
+    required double goalDistance,
   })  : _currentSteps = currentSteps,
         _currentCalories = currentCalories,
-        _currentDistance = currentDistance;
+        _currentDistance = currentDistance,
+        _goalSteps = goalSteps,
+        _goalCalories = goalCalories,
+        _goalDistance = goalDistance;
 
   final double _currentSteps;
   final double _currentCalories;
   final double _currentDistance;
+  final double _goalSteps;
+  final double _goalCalories;
+  final double _goalDistance;
 
   @override
   Widget build(BuildContext context) {
@@ -78,25 +88,28 @@ class GoalGridBoxWidget extends StatelessWidget {
         crossAxisSpacing: 5,
         children: [
           GoalWidget(
-            icon: Icons.do_not_step_rounded,
+            icon: FluentIcons.person_walking_16_filled,
             currentVal: _currentSteps,
-            val: 10000,
+            val: _goalSteps,
             color: AppColors.contentColorRed,
-            isDistance: false, unit: ' steps',
+            isDistance: false,
+            unit: ' steps',
           ),
           GoalWidget(
             icon: CupertinoIcons.bolt,
             currentVal: _currentCalories,
-            val: 5000,
+            val: _goalCalories,
             color: AppColors.contentColorOrange,
-            isDistance: false, unit: ' cal',
+            isDistance: false,
+            unit: ' cal',
           ),
           GoalWidget(
-            icon: Icons.social_distance_sharp,
+            icon: FluentIcons.location_48_filled,
             currentVal: _currentDistance,
-            val: 10.00,
+            val: _goalDistance,
             color: AppColors.contentColorYellow,
-            isDistance: true, unit: ' km',
+            isDistance: true,
+            unit: ' km',
           ),
         ],
       ),

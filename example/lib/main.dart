@@ -3,6 +3,8 @@ import 'package:health_example/src/service/health_service.dart';
 import 'package:health_example/src/utils/util.dart';
 import 'package:health_example/src/views/view.dart';
 
+import 'src/views/splash_screen.dart';
+
 void main() => runApp(HealthApp());
 
 class HealthApp extends StatefulWidget {
@@ -17,13 +19,8 @@ class _HealthAppState extends State<HealthApp> {
   @override
   void initState() {
     super.initState();
-    if (_state != AppState.AUTHORIZED) {
-      _healthService.configureHealth();
-      authorize();
-    } else {
-      _healthService.configureHealth();
-      authorize();
-    }
+    _healthService.configureHealth();
+    authorize();
   }
 
   Future<void> authorize() async {
@@ -36,9 +33,11 @@ class _HealthAppState extends State<HealthApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: SafeArea(
-          child: _state == AppState.AUTHORIZED
-              ? MainView()
-              : AuthorizationScreen()),
+          child: _state == AppState.DATA_NOT_FETCHED
+              ? SplashScreen()
+              : (_state == AppState.AUTHORIZED
+                  ? MainView()
+                  : AuthorizationScreen())),
     );
   }
 }

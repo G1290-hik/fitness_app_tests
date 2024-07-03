@@ -45,9 +45,7 @@ class SingleDayHeartRateLineChart extends StatelessWidget {
                         return SideTitleWidget(
                           axisSide: meta.axisSide,
                           child: Text(
-                            DateFormat('HH:mm').format(
-                              dates[index],
-                            ),
+                            DateFormat('HH:mm').format(dates[index]),
                             style: TextStyle(
                               color: AppColors.mainTextColor2,
                               fontSize: fontSize,
@@ -125,6 +123,38 @@ class SingleDayHeartRateLineChart extends StatelessWidget {
                   dotData: FlDotData(show: false),
                 ),
               ],
+              lineTouchData: LineTouchData(
+                touchTooltipData: LineTouchTooltipData(
+                  tooltipPadding: EdgeInsets.all(8),
+                  tooltipMargin: 8,
+                  getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                    return touchedSpots.map((spot) {
+                      DateTime date = dates[spot.x.toInt()];
+                      double value = spot.y;
+                      return LineTooltipItem(
+                        '${DateFormat('HH:mm').format(date)}\nValue: $value',
+                        TextStyle(
+                          color: AppColors.mainTextColor1,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    }).toList();
+                  },
+                ),
+                touchCallback:
+                    (FlTouchEvent event, LineTouchResponse? touchResponse) {
+                  if (event.isInterestedForInteractions &&
+                      touchResponse != null &&
+                      touchResponse.lineBarSpots != null) {
+                    final touchIndex =
+                        touchResponse.lineBarSpots!.first.spotIndex;
+                    print('Touched index: $touchIndex');
+                  } else {
+                    print('No bar touched');
+                  }
+                },
+                handleBuiltInTouches: true,
+              ),
             ),
           ),
         ),

@@ -5,6 +5,8 @@ import 'package:health_example/src/utils/theme.dart';
 import 'package:health_example/src/widgets/widgets.dart';
 import 'package:intl/intl.dart';
 
+import 'edit_goals_screen.dart';
+
 class MainView extends StatefulWidget {
   const MainView({super.key});
 
@@ -19,7 +21,11 @@ class _MainViewState extends State<MainView> {
   double _currentSteps = 0;
   double _currentCalories = 0;
   double _currentDistance = 0;
+  double _goalSteps = 10000;
+  double _goalCalories = 5000;
+  double _goalDistance = 10;
   Map<String, dynamic> _vitalsData = {};
+
   Future<void> _fetchData() async {
     try {
       DateTime now = DateTime.now();
@@ -100,6 +106,14 @@ class _MainViewState extends State<MainView> {
     return weekDays;
   }
 
+  void _editGoals(Map<String, double> newGoals) {
+    setState(() {
+      _goalSteps = newGoals['walkSteps']!;
+      _goalCalories = newGoals['burnKcals']!;
+      _goalDistance = newGoals['coverDistance']!;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -108,11 +122,7 @@ class _MainViewState extends State<MainView> {
         future: _initialLoad,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(
-                color: AppColors.contentColorWhite,
-              ),
-            );
+            return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error loading data'));
           } else {
@@ -146,15 +156,29 @@ class _MainViewState extends State<MainView> {
                   child: MergedCircularGraphWidget(
                     alternatePadding: false,
                     values: {
-                      'steps': _currentSteps / 10000,
-                      'calories': _currentCalories / 5000,
-                      'distance': _currentDistance / 10,
+                      'steps': _currentSteps / _goalSteps,
+                      'calories': _currentCalories / _goalCalories,
+                      'distance': _currentDistance / _goalDistance,
                     },
                     size: 200,
                   ),
                 ),
                 MaterialButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    Map<String, double>? newGoals = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditGoalsScreen(
+                          initialWalkSteps: _goalSteps,
+                          initialBurnKcals: _goalCalories,
+                          initialCoverDistance: _goalDistance,
+                        ),
+                      ),
+                    );
+                    if (newGoals != null) {
+                      _editGoals(newGoals);
+                    }
+                  },
                   elevation: 8,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
@@ -170,8 +194,11 @@ class _MainViewState extends State<MainView> {
                 ),
                 GoalGridBoxWidget(
                   currentSteps: _currentSteps,
+                  goalSteps: _goalSteps,
                   currentCalories: _currentCalories,
+                  goalCalories: _goalCalories,
                   currentDistance: _currentDistance,
+                  goalDistance: _goalDistance,
                 ),
               ],
             ),
@@ -180,6 +207,9 @@ class _MainViewState extends State<MainView> {
             weekDays: weekDays,
             height: constraints.maxHeight * 0.2,
             width: constraints.maxWidth,
+            goalDistance: _goalDistance,
+            goalCalories: _goalCalories,
+            goalSteps: _goalSteps,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
