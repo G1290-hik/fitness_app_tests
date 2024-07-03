@@ -28,31 +28,38 @@ class _MainViewState extends State<MainView> {
 
       debugPrint('Fetching current day data...');
       double steps = await _healthService.getTotalSteps(startTime, endTime);
-      double calories = await _healthService.getCaloriesBurnt(startTime, endTime);
+      double calories =
+          await _healthService.getCaloriesBurnt(startTime, endTime);
       double distance = await _healthService.getDistance(startTime, endTime);
-      debugPrint('Current day data fetched: steps=$steps, calories=$calories, distance=$distance');
+      debugPrint(
+          'Current day data fetched: steps=$steps, calories=$calories, distance=$distance');
 
       debugPrint('Fetching latest systolic blood pressure data...');
-      double latestSystolicBP = await _healthService.getLatestSystolicBP(startTime, endTime);
+      double latestSystolicBP =
+          await _healthService.getLatestSystolicBP(startTime, endTime);
       debugPrint('Systolic blood pressure data fetched: $latestSystolicBP');
 
       debugPrint('Fetching latest diastolic blood pressure data...');
-      double latestDiastolicBP = await _healthService.getLatestDiastolicBP(startTime, endTime);
+      double latestDiastolicBP =
+          await _healthService.getLatestDiastolicBP(startTime, endTime);
       debugPrint('Diastolic blood pressure data fetched: $latestDiastolicBP');
 
       debugPrint('Fetching latest heart rate data...');
-      double latestHr = await _healthService.getLatestHeartRate(startTime, endTime);
+      double latestHr =
+          await _healthService.getLatestHeartRate(startTime, endTime);
       debugPrint('Heart rate data fetched: $latestHr');
 
       debugPrint('Fetching latest sleep data...');
-      List<HealthDataPoint> sleepData = await _healthService.checkSleepData(startTime, endTime);
+      List<HealthDataPoint> sleepData =
+          await _healthService.checkSleepData(startTime, endTime);
       double totalSleepDuration = sleepData.fold(
           0.0,
-              (sum, data) => sum + (data.value as NumericHealthValue).numericValue.toDouble());
+          (sum, data) =>
+              sum + (data.value as NumericHealthValue).numericValue.toDouble());
       if (totalSleepDuration > 0) {
         debugPrint('Sleep data fetched: $totalSleepDuration');
       } else {
-        debugPrint('No sleep data found in the last 7 days.');
+        debugPrint('No sleep data found in the last days.');
       }
 
       setState(() {
@@ -83,8 +90,6 @@ class _MainViewState extends State<MainView> {
     _initialLoad = _fetchData();
   }
 
-
-
   List<String> _getWeekDays() {
     List<String> weekDays = [];
     DateTime now = DateTime.now();
@@ -103,7 +108,11 @@ class _MainViewState extends State<MainView> {
         future: _initialLoad,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: AppColors.contentColorWhite,
+              ),
+            );
           } else if (snapshot.hasError) {
             return Center(child: Text('Error loading data'));
           } else {
