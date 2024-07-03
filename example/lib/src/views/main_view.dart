@@ -20,40 +20,25 @@ class _MainViewState extends State<MainView> {
   double _currentCalories = 0;
   double _currentDistance = 0;
   Map<String, dynamic> _vitalsData = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _initialLoad = _fetchAllData();
-  }
-
-  Future<void> _fetchCurrentDayData() async {
+  Future<void> _fetchData() async {
     try {
+      DateTime now = DateTime.now();
+      DateTime startTime = now.subtract(Duration(days: 1));
+      DateTime endTime = now;
+
       debugPrint('Fetching current day data...');
-      DateTime now = DateTime.now();
-      DateTime startTime = DateTime(now.year, now.month, now.day);
-      DateTime endTime = now;
+      double steps = await _healthService.getTotalSteps(startTime, endTime);
+      double calories = await _healthService.getCaloriesBurnt(startTime, endTime);
+      double distance = await _healthService.getDistance(startTime, endTime);
+      debugPrint('Current day data fetched: steps=$steps, calories=$calories, distance=$distance');
 
-      _currentSteps = await _healthService.getTotalSteps(startTime, endTime);
-      _currentCalories = await _healthService.getCaloriesBurnt(startTime, endTime);
-      _currentDistance = await _healthService.getDistance(startTime, endTime);
+      debugPrint('Fetching latest systolic blood pressure data...');
+      double latestSystolicBP = await _healthService.getLatestSystolicBP(startTime, endTime);
+      debugPrint('Systolic blood pressure data fetched: $latestSystolicBP');
 
-      setState(() {});
-      debugPrint('Current day data fetched: steps=$_currentSteps, calories=$_currentCalories, distance=$_currentDistance');
-    } catch (e) {
-      debugPrint('Error fetching current day data: $e');
-    }
-  }
-
-  Future<void> _fetchVitalsData() async {
-    try {
-      debugPrint('Fetching latest blood pressure data...');
-      DateTime now = DateTime.now();
-      DateTime startTime = now.subtract(Duration(days: 1)); // Example duration
-      DateTime endTime = now;
-
-      Map<String, double> latestBpData = await _healthService.getLatestBloodPressure(startTime, endTime);
-      debugPrint('Blood pressure data fetched: $latestBpData');
+      debugPrint('Fetching latest diastolic blood pressure data...');
+      double latestDiastolicBP = await _healthService.getLatestDiastolicBP(startTime, endTime);
+      debugPrint('Diastolic blood pressure data fetched: $latestDiastolicBP');
 
       debugPrint('Fetching latest heart rate data...');
       double latestHr = await _healthService.getLatestHeartRate(startTime, endTime);
@@ -61,38 +46,44 @@ class _MainViewState extends State<MainView> {
 
       debugPrint('Fetching latest sleep data...');
       List<HealthDataPoint> sleepData = await _healthService.checkSleepData(startTime, endTime);
-      double totalSleepDuration = sleepData.fold(0.0, (sum, data) => sum + (data.value as NumericHealthValue).numericValue.toDouble());
-      debugPrint('Sleep data fetched: $totalSleepDuration');
+      double totalSleepDuration = sleepData.fold(
+          0.0,
+              (sum, data) => sum + (data.value as NumericHealthValue).numericValue.toDouble());
+      if (totalSleepDuration > 0) {
+        debugPrint('Sleep data fetched: $totalSleepDuration');
+      } else {
+        debugPrint('No sleep data found in the last 7 days.');
+      }
 
       setState(() {
+        _currentSteps = steps;
+        _currentCalories = calories;
+        _currentDistance = distance;
         _vitalsData = {
-          'systolic': latestBpData['systolic'],
+          'systolic': latestSystolicBP,
           'systolicTime': endTime,
-          'diastolic': latestBpData['diastolic'],
+          'diastolic': latestDiastolicBP,
           'diastolicTime': endTime,
           'heartRate': latestHr,
           'heartRateTime': endTime,
           'sleepDuration': totalSleepDuration,
           'sleepTime': endTime,
         };
+        debugPrint(
+            'Data fetched, steps=$steps, calories=$calories, distance=$distance, systolicBP=$latestSystolicBP, diastolicBP=$latestDiastolicBP, heartRate=$latestHr, sleep=$totalSleepDuration');
       });
     } catch (e) {
-      debugPrint('Error fetching vitals data: $e');
+      debugPrint('Error fetching data: $e');
     }
   }
 
-  Future<void> _fetchAllData() async {
-    try {
-      debugPrint('Fetching all data...');
-      await Future.wait([
-        _fetchCurrentDayData(),
-        _fetchVitalsData(),
-      ]);
-      debugPrint('All data fetched successfully');
-    } catch (e) {
-      debugPrint('Error fetching all data: $e');
-    }
+  @override
+  void initState() {
+    super.initState();
+    _initialLoad = _fetchData();
   }
+
+
 
   List<String> _getWeekDays() {
     List<String> weekDays = [];
@@ -153,16 +144,18 @@ class _MainViewState extends State<MainView> {
                     size: 200,
                   ),
                 ),
-                const Card(
+                MaterialButton(
+                  onPressed: () {},
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                   color: AppColors.menuBackground,
-                  child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      "Your Goals",
-                      style: TextStyle(
-                          fontSize: 10,
-                          color: AppColors.mainTextColor2,
-                          fontWeight: FontWeight.bold),
+                  child: Text(
+                    "Edit Your Goals",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.mainTextColor2,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -183,11 +176,11 @@ class _MainViewState extends State<MainView> {
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Container(
               color: Colors.transparent,
-              height: constraints.maxHeight * 0.6,
+              height: constraints.maxHeight * 0.55,
               child: VitalsDetailGridBox(vitalsData: _vitalsData),
             ),
           ),
-          ActivityWidget(height: constraints.maxHeight * 0.4),
+          ActivityWidget(height: constraints.maxHeight * 0.1),
         ],
       );
     });

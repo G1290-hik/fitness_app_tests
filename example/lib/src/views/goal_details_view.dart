@@ -5,12 +5,12 @@ import 'package:health_example/src/widgets/charts/step_barchart.dart';
 import 'package:health_example/src/widgets/charts/steps_linechart_widget.dart';
 import 'package:health_example/src/widgets/grid_widget.dart';
 
-class StepDetailsScreen extends StatefulWidget {
+class GoalDetailsScreen extends StatefulWidget {
   @override
-  _StepDetailsScreenState createState() => _StepDetailsScreenState();
+  _GoalDetailsScreenState createState() => _GoalDetailsScreenState();
 }
 
-class _StepDetailsScreenState extends State<StepDetailsScreen>
+class _GoalDetailsScreenState extends State<GoalDetailsScreen>
     with SingleTickerProviderStateMixin {
   final StepDataFetcher _stepDataFetcher = StepDataFetcher();
   List<double> _stepsValues1Day = [];
@@ -104,7 +104,7 @@ class _StepDetailsScreenState extends State<StepDetailsScreen>
       appBar: AppBar(
         iconTheme: IconThemeData(color: AppColors.contentColorWhite),
         title:
-            Text('Steps', style: TextStyle(color: AppColors.contentColorWhite)),
+            Text('Goal', style: TextStyle(color: AppColors.contentColorWhite)),
         backgroundColor: AppColors.pageBackground,
         bottom: TabBar(
           controller: _tabController,

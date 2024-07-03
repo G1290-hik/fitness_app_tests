@@ -396,4 +396,25 @@ class HealthService {
       'diastolic': latestDiastolic,
     };
   }
+  Future<double> getLatestSystolicBP(DateTime startTime, DateTime endTime) async {
+    List<HealthDataPoint> systolicData = await getSystolicBP(startTime, endTime);
+
+    if (systolicData.isNotEmpty) {
+      return (systolicData.last.value as NumericHealthValue).numericValue.toDouble();
+    } else {
+      print("No systolic blood pressure data available");
+      return 0.0;
+    }
+  }
+
+  Future<double> getLatestDiastolicBP(DateTime startTime, DateTime endTime) async {
+    List<HealthDataPoint> diastolicData = await getDiastolicBP(startTime, endTime);
+
+    if (diastolicData.isNotEmpty) {
+      return (diastolicData.last.value as NumericHealthValue).numericValue.toDouble();
+    } else {
+      print("No diastolic blood pressure data available");
+      return 0.0;
+    }
+  }
 }

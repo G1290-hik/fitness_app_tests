@@ -81,19 +81,12 @@ class VitalsDetailGridBox extends StatelessWidget {
 
   const VitalsDetailGridBox({super.key, required this.vitalsData});
 
-  String _formatDateTime(DateTime? dateTime) {
-    if (dateTime == null) return 'N/A';
-    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final double sleepDuration = vitalsData['sleepDuration'] ?? 0;
     final int hours = sleepDuration ~/ 60;
     final double minutes = sleepDuration % 60;
-    _formatDateTime(vitalsData['diastolicTime']);
-    _formatDateTime(vitalsData['heartRateTime']);
-    _formatDateTime(vitalsData['sleepTime']);
+
 
     return GridView.count(
       crossAxisCount: 2,
