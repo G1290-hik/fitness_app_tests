@@ -286,6 +286,83 @@ class HealthService {
     }
   }
 
+  Future<List<HealthDataPoint>> fetchSleepData(
+      List<HealthDataType> types, DateTime startTime, DateTime endTime) async {
+    return await fetchData(types, startTime, endTime);
+  }
+  Future<List<HealthDataPoint>> checkSleepData(DateTime startTime, DateTime endTime) async {
+    List<HealthDataType> sleepTypes = [
+      HealthDataType.SLEEP_SESSION,
+    ];
+    return await fetchData(sleepTypes, startTime, endTime);
+  }
+
+  Future<void> addSleepData(HealthDataType dataType, DateTime startTime,
+      DateTime endTime, double value) async {
+    bool success = await Health().writeHealthData(
+      value: value,
+      type: dataType,
+      startTime: startTime,
+      endTime: endTime,
+    );
+    if (success) {
+      print("Data added successfully");
+    } else {
+      print("Failed to add data");
+    }
+  }
+
+  Future<void> addSleepWeekly(DateTime startTime, DateTime endTime) async {
+    for (int i = 0; i < 7; i++) {
+      DateTime start = startTime.subtract(Duration(days: i));
+      DateTime end = endTime.subtract(Duration(days: i));
+      await addSleepSession(start, end);
+    }
+  }
+
+  Future<void> addSleepMonthly(DateTime startTime, DateTime endTime) async {
+    for (int i = 0; i < 30; i++) {
+      DateTime start = startTime.subtract(Duration(days: i));
+      DateTime end = endTime.subtract(Duration(days: i));
+      await addSleepSession(start, end);
+    }
+  }
+
+  Future<void> addSleepSession(DateTime startTime, DateTime endTime) async {
+    await addSleepData(
+        HealthDataType.SLEEP_ASLEEP, startTime, endTime, 480.0); // 480 minutes
+    await addSleepData(
+        HealthDataType.SLEEP_LIGHT, startTime, endTime, 240.0); // 240 minutes
+    await addSleepData(
+        HealthDataType.SLEEP_DEEP, startTime, endTime, 120.0); // 120 minutes
+    await addSleepData(
+        HealthDataType.SLEEP_REM, startTime, endTime, 60.0); // 60 minutes
+    await addSleepData(
+        HealthDataType.SLEEP_SESSION, startTime, endTime, 1.0); // 1 session
+  }
+
+  Future<void> deleteSleepData(DateTime startTime, DateTime endTime) async {
+    bool success = true;
+    for (HealthDataType type in [
+      HealthDataType.SLEEP_ASLEEP,
+      HealthDataType.SLEEP_LIGHT,
+      HealthDataType.SLEEP_DEEP,
+      HealthDataType.SLEEP_REM,
+      HealthDataType.SLEEP_SESSION
+    ]) {
+      success &= await Health().delete(
+        type: type,
+        startTime: startTime,
+        endTime: endTime,
+      );
+    }
+    if (success) {
+      print("Sleep data deleted successfully");
+    } else {
+      print("Failed to delete sleep data");
+    }
+  }
+
   Future<Map<String, double>> getLatestBloodPressure(
       DateTime startTime, DateTime endTime) async {
     List<HealthDataPoint> systolicData =

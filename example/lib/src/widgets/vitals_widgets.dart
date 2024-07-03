@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:health_example/src/service/fetcher/fetcher.dart';
+import 'package:health_example/src/views/sleep_details_screen.dart';
 import 'package:health_example/src/utils/theme.dart';
 import 'package:health_example/src/views/view.dart';
 
@@ -7,7 +7,6 @@ class VitalsDetailCard extends StatelessWidget {
   final String title;
   final String value;
   final String unit;
-  final String description;
   final Widget screen;
 
   const VitalsDetailCard({
@@ -15,7 +14,6 @@ class VitalsDetailCard extends StatelessWidget {
     required this.title,
     required this.value,
     required this.unit,
-    required this.description,
     required this.screen,
   });
 
@@ -34,44 +32,40 @@ class VitalsDetailCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title.toUpperCase(),
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize:18,
                   color: AppColors.mainTextColor2,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: value,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        color: AppColors.mainTextColor1,
-                        fontWeight: FontWeight.bold,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: value,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          color: AppColors.mainTextColor1,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    TextSpan(
-                      text: unit,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.mainTextColor2,
-                        fontWeight: FontWeight.bold,
+                      TextSpan(
+                        text: unit,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.mainTextColor2,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                description,
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: AppColors.mainTextColor2,
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -82,83 +76,52 @@ class VitalsDetailCard extends StatelessWidget {
   }
 }
 
-class VitalsDetailGridBox extends StatefulWidget {
-  const VitalsDetailGridBox({super.key});
+class VitalsDetailGridBox extends StatelessWidget {
+  final Map<String, dynamic> vitalsData;
 
-  @override
-  _VitalsDetailGridBoxState createState() => _VitalsDetailGridBoxState();
-}
+  const VitalsDetailGridBox({super.key, required this.vitalsData});
 
-class _VitalsDetailGridBoxState extends State<VitalsDetailGridBox> {
-  final BloodPressureFetcher _bpFetcher = BloodPressureFetcher();
-  final HeartRateFetcher _hrFetcher = HeartRateFetcher();
-
-  Future<Map<String, dynamic>> _fetchData() async {
-    try {
-      // Fetch latest systolic and diastolic blood pressure
-      print('Fetching latest blood pressure data...');
-      Map<String, dynamic> latestBpData =
-          await _bpFetcher.fetchLatestBloodPressure();
-      print('Blood pressure data fetched: $latestBpData');
-
-      // Fetch latest heart rate data
-      print('Fetching latest heart rate data...');
-      Map<String, dynamic> latestHrData =
-          await _hrFetcher.fetchLatestHeartRate();
-      print('Heart rate data fetched: $latestHrData');
-
-      return {
-        'systolic': latestBpData['systolic'],
-        'systolicTime': latestBpData['timestamp'],
-        'diastolic': latestBpData['diastolic'],
-        'diastolicTime': latestBpData['timestamp'],
-        'heartRate': latestHrData['heartRate'],
-        'heartRateTime': latestHrData['timestamp'],
-      };
-    } catch (e) {
-      print('Error fetching data: $e');
-      return {};
-    }
+  String _formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) return 'N/A';
+    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _fetchData(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else {
-          final data = snapshot.data ?? {};
-          return GridView.count(
-            crossAxisCount: 2,
-            crossAxisSpacing: 4.0,
-            mainAxisSpacing: 4.0,
-            shrinkWrap: true,
-            children: <Widget>[
-              VitalsDetailCard(
-                title: 'Blood Pressure',
-                value:
-                    '${data['systolic']?.toStringAsFixed(0) ?? '0'}/${data['diastolic']?.toStringAsFixed(0) ?? '0'}',
-                unit: ' mmHg',
-                description:
-                    'Last measured: ${data['diastolicTime']?.toString() ?? 'N/A'}',
-                screen: BloodPressureDetailScreen(),
-              ),
-              VitalsDetailCard(
-                title: 'Heart Rate',
-                value: '${data['heartRate']?.toStringAsFixed(0) ?? '0'}',
-                unit: ' bpm',
-                description:
-                    'Last measured: ${data['heartRateTime']?.toString() ?? 'N/A'}',
-                screen: HeartRateDetailScreen(),
-              ),
-            ],
-          );
-        }
-      },
+    final double sleepDuration = vitalsData['sleepDuration'] ?? 0;
+    final int hours = sleepDuration ~/ 60;
+    final double minutes = sleepDuration % 60;
+    _formatDateTime(vitalsData['diastolicTime']);
+    _formatDateTime(vitalsData['heartRateTime']);
+    _formatDateTime(vitalsData['sleepTime']);
+
+    return GridView.count(
+      crossAxisCount: 2,
+      crossAxisSpacing: 4.0,
+      mainAxisSpacing: 4.0,
+      physics: NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      children: <Widget>[
+        VitalsDetailCard(
+          title: 'Blood Pressure',
+          value:
+          '${vitalsData['systolic']?.toStringAsFixed(0) ?? '0'} / ${vitalsData['diastolic']?.toStringAsFixed(0) ?? '0'}',
+          unit: ' mmHg',
+          screen: BloodPressureDetailScreen(),
+        ),
+        VitalsDetailCard(
+          title: 'Heart Rate',
+          value: '${vitalsData['heartRate']?.toStringAsFixed(0) ?? '0'}',
+          unit: ' bpm',
+          screen: HeartRateDetailScreen(),
+        ),
+        VitalsDetailCard(
+          title: 'Sleep',
+          value: '${hours.toStringAsFixed(0)}h ${minutes.toStringAsFixed(0)}m',
+          unit: '',
+          screen: SleepDetailScreen(), // Add a screen for detailed sleep view
+        ),
+      ],
     );
   }
 }

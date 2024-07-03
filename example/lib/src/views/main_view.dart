@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:health_example/src/service/fetcher/fetcher.dart';
+import 'package:health/health.dart';
+import 'package:health_example/src/service/health_service.dart';
 import 'package:health_example/src/utils/theme.dart';
 import 'package:health_example/src/widgets/widgets.dart';
 import 'package:intl/intl.dart';
@@ -12,11 +13,13 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> {
-  final StepDataFetcher _stepDataFetcher = StepDataFetcher();
+  final HealthService _healthService = HealthService();
+
   late Future<void> _initialLoad;
   double _currentSteps = 0;
   double _currentCalories = 0;
   double _currentDistance = 0;
+  Map<String, dynamic> _vitalsData = {};
 
   @override
   void initState() {
@@ -25,32 +28,70 @@ class _MainViewState extends State<MainView> {
   }
 
   Future<void> _fetchCurrentDayData() async {
-    DateTime now = DateTime.now();
-    DateTime startTime = DateTime(now.year, now.month, now.day);
-    DateTime endTime = now;
+    try {
+      debugPrint('Fetching current day data...');
+      DateTime now = DateTime.now();
+      DateTime startTime = DateTime(now.year, now.month, now.day);
+      DateTime endTime = now;
 
-    List<double> stepsValues = await _stepDataFetcher.fetchStepsData(
-        startTime, endTime, Duration(hours: 1));
-    List<double> caloriesValues = await _stepDataFetcher.fetchCaloriesData(
-        startTime, endTime, Duration(hours: 1));
+      _currentSteps = await _healthService.getTotalSteps(startTime, endTime);
+      _currentCalories = await _healthService.getCaloriesBurnt(startTime, endTime);
+      _currentDistance = await _healthService.getDistance(startTime, endTime);
 
-    setState(() {
-      _currentSteps = stepsValues.reduce((a, b) => a + b);
-      _currentCalories = caloriesValues.reduce((a, b) => a + b);
-      _currentDistance = _currentSteps * 0.0008; // Example conversion factor
-    });
+      setState(() {});
+      debugPrint('Current day data fetched: steps=$_currentSteps, calories=$_currentCalories, distance=$_currentDistance');
+    } catch (e) {
+      debugPrint('Error fetching current day data: $e');
+    }
   }
 
   Future<void> _fetchVitalsData() async {
-    // Simulate fetching data with a delay
-    await Future.delayed(Duration(seconds: 2));
+    try {
+      debugPrint('Fetching latest blood pressure data...');
+      DateTime now = DateTime.now();
+      DateTime startTime = now.subtract(Duration(days: 1)); // Example duration
+      DateTime endTime = now;
+
+      Map<String, double> latestBpData = await _healthService.getLatestBloodPressure(startTime, endTime);
+      debugPrint('Blood pressure data fetched: $latestBpData');
+
+      debugPrint('Fetching latest heart rate data...');
+      double latestHr = await _healthService.getLatestHeartRate(startTime, endTime);
+      debugPrint('Heart rate data fetched: $latestHr');
+
+      debugPrint('Fetching latest sleep data...');
+      List<HealthDataPoint> sleepData = await _healthService.checkSleepData(startTime, endTime);
+      double totalSleepDuration = sleepData.fold(0.0, (sum, data) => sum + (data.value as NumericHealthValue).numericValue.toDouble());
+      debugPrint('Sleep data fetched: $totalSleepDuration');
+
+      setState(() {
+        _vitalsData = {
+          'systolic': latestBpData['systolic'],
+          'systolicTime': endTime,
+          'diastolic': latestBpData['diastolic'],
+          'diastolicTime': endTime,
+          'heartRate': latestHr,
+          'heartRateTime': endTime,
+          'sleepDuration': totalSleepDuration,
+          'sleepTime': endTime,
+        };
+      });
+    } catch (e) {
+      debugPrint('Error fetching vitals data: $e');
+    }
   }
 
   Future<void> _fetchAllData() async {
-    await Future.wait([
-      _fetchCurrentDayData(),
-      _fetchVitalsData(),
-    ]);
+    try {
+      debugPrint('Fetching all data...');
+      await Future.wait([
+        _fetchCurrentDayData(),
+        _fetchVitalsData(),
+      ]);
+      debugPrint('All data fetched successfully');
+    } catch (e) {
+      debugPrint('Error fetching all data: $e');
+    }
   }
 
   List<String> _getWeekDays() {
@@ -142,11 +183,11 @@ class _MainViewState extends State<MainView> {
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Container(
               color: Colors.transparent,
-              height: constraints.maxHeight * 0.4,
-              child: VitalsDetailGridBox(),
+              height: constraints.maxHeight * 0.6,
+              child: VitalsDetailGridBox(vitalsData: _vitalsData),
             ),
           ),
-          ActivityWidget(height: constraints.maxHeight*0.4,)
+          ActivityWidget(height: constraints.maxHeight * 0.4),
         ],
       );
     });
