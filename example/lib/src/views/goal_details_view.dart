@@ -119,7 +119,10 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen>
         ),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+              color: AppColors.contentColorWhite,
+            ))
           : TabBarView(
               controller: _tabController,
               children: [

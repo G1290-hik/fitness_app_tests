@@ -3,8 +3,6 @@ import 'package:health_example/src/service/health_service.dart';
 import 'package:health_example/src/utils/util.dart';
 import 'package:health_example/src/views/view.dart';
 
-import 'src/views/splash_screen.dart';
-
 void main() => runApp(HealthApp());
 
 class HealthApp extends StatefulWidget {

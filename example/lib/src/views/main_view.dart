@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:health/health.dart';
 import 'package:health_example/src/service/health_service.dart';
 import 'package:health_example/src/utils/theme.dart';
+import 'package:health_example/src/views/splash_screen.dart';
 import 'package:health_example/src/widgets/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -141,11 +142,15 @@ class _MainViewState extends State<MainView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
+      appBar: AppBar(
+        backgroundColor: AppColors.pageBackground,
+        centerTitle: true,
+      ),
       body: FutureBuilder<void>(
         future: _initialLoad,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return SplashScreen();
           } else if (snapshot.hasError) {
             return Center(child: Text('Error loading data'));
           } else {

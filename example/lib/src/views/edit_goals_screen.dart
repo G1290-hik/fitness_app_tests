@@ -103,7 +103,7 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                   ),
                 ),
                 Text(
-                  'calories/day',
+                  'kcals/day',
                   style: TextStyle(
                     color: AppColors.mainTextColor2,
                     fontSize: 18,
@@ -131,7 +131,7 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
                   ),
                 ),
                 Text(
-                  'hours/day',
+                  'km/day',
                   style: TextStyle(
                     color: AppColors.mainTextColor2,
                     fontSize: 18,
@@ -148,6 +148,8 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
               textAlign: TextAlign.center,
             ),
             MaterialButton(
+              minWidth: width * 0.9,
+              height: MediaQuery.sizeOf(context).height * 0.08,
               onPressed: () {
                 Navigator.pop(context, {
                   'walkSteps': walkSteps,
@@ -157,13 +159,13 @@ class _EditGoalsScreenState extends State<EditGoalsScreen> {
               },
               elevation: 8,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+                  borderRadius: BorderRadius.circular(24)),
               color: AppColors.menuBackground,
               child: Text(
                 "Save Goals",
                 style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.mainTextColor2,
+                  fontSize: 18,
+                  color: AppColors.mainTextColor1,
                   fontWeight: FontWeight.bold,
                 ),
               ),

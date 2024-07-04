@@ -58,7 +58,10 @@ class _ActivityHistoryScreenState extends State<ActivityHistoryScreen> {
         backgroundColor: AppColors.pageBackground,
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+              color: AppColors.contentColorWhite,
+            ))
           : _aggregatedData.isEmpty
               ? Center(child: Text("No data available."))
               : ListView.builder(

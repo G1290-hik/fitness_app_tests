@@ -106,7 +106,10 @@ class _StreakWidgetState extends State<StreakWidget> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _isLoading
-                  ? Center(child: CircularProgressIndicator())
+                  ? Center(
+                      child: CircularProgressIndicator(
+                      color: AppColors.contentColorWhite,
+                    ))
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: List.generate(7, (index) {
