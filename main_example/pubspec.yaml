@@ -1,0 +1,28 @@
+name: health_example
+description: Demonstrates how to use the health plugin.
+publish_to: "none"
+version: 4.5.0
+
+environment:
+  sdk: ">=3.2.0 <4.0.0"
+  flutter: ">=3.6.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  permission_handler: ^10.2.0
+  carp_serializable: ^1.1.0 
+  health: ^10.2.0
+  geekyants_flutter_gauges: ^1.0.4
+  fl_chart: ^0.68.0
+  number_selector: ^1.0.7
+  fluentui_system_icons: ^1.1.246
+  shared_preferences: ^2.2.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

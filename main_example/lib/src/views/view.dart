@@ -1,0 +1,12 @@
+export 'authorization_screen.dart';
+export 'main_view.dart';
+export 'read_ui/activity_history_view.dart';
+export 'read_ui/blood_oxygen_details_view.dart';
+export 'read_ui/blood_pressure_details_view.dart';
+export 'read_ui/edit_goals_screen.dart';
+export 'read_ui/goal_details_view.dart';
+export 'read_ui/heart_rate_details_view.dart';
+export 'read_ui/sleep_details_screen.dart';
+export 'read_ui/streak_detail_view.dart';
+export 'read_ui/workout_detail_view.dart';
+export 'splash_screen.dart';
