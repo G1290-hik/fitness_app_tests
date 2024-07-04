@@ -121,11 +121,27 @@ class _MainViewState extends State<MainView> {
     await _fetchData();
   }
 
+  String _getAppBarTitle() {
+    switch (_currentIndex) {
+      case 0:
+        return "";
+      case 1:
+        return "Add Health Data";
+      default:
+        return "Health App";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       appBar: AppBar(
+        title: Text(_getAppBarTitle(),
+            style: TextStyle(
+                color: AppColors.mainTextColor1,
+                fontWeight:
+                    FontWeight.bold)), // Update according to the shown content
         backgroundColor: AppColors.pageBackground,
         centerTitle: true,
       ),

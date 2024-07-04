@@ -21,7 +21,7 @@ class _BloodOxygenDetailScreenState extends State<BloodOxygenDetailScreen>
   List<double> _hourlyBloodOxygenMin = [];
   List<double> _hourlyBloodOxygenMax = [];
   List<DateTime> _hourlyDates = [];
-  DateTime _startDate = DateTime.now().subtract(Duration(days: 6));
+  DateTime _startDate = DateTime.now().subtract(Duration(days: 1));
   bool _isLoading = true;
   double _maxBloodOxygen = 0;
   double _minBloodOxygen = 0;
@@ -36,18 +36,21 @@ class _BloodOxygenDetailScreenState extends State<BloodOxygenDetailScreen>
   }
 
   void _handleTabChange() {
+    _updateStartDate();
+    _fetchBloodOxygenData();
+  }
+
+  void _updateStartDate() {
     setState(() {
       switch (_tabController?.index) {
         case 0:
-          _updateMinMaxBloodOxygen(
-              _hourlyBloodOxygenMin, _hourlyBloodOxygenMax);
+          _startDate = DateTime.now().subtract(Duration(days: 1));
           break;
         case 1:
-          _updateMinMaxBloodOxygen(_minBloodOxygen7Days, _maxBloodOxygen7Days);
+          _startDate = DateTime.now().subtract(Duration(days: 7));
           break;
         case 2:
-          _updateMinMaxBloodOxygen(
-              _minBloodOxygen30Days, _maxBloodOxygen30Days);
+          _startDate = DateTime.now().subtract(Duration(days: 30));
           break;
       }
     });
@@ -100,12 +103,66 @@ class _BloodOxygenDetailScreenState extends State<BloodOxygenDetailScreen>
       _minBloodOxygen = data['overallMinBloodOxygen'];
     });
 
-    // Set initial min and max blood oxygen based on the 1-day data
     _updateMinMaxBloodOxygen(_hourlyBloodOxygenMin, _hourlyBloodOxygenMax);
   }
 
+  // void _previousPeriod() {
+  //   setState(() {
+  //     switch (_tabController?.index) {
+  //       case 0:
+  //         _startDate = _startDate.subtract(Duration(days: 1));
+  //         break;
+  //       case 1:
+  //         _startDate = _startDate.subtract(Duration(days: 7));
+  //         break;
+  //       case 2:
+  //         _startDate = _startDate.subtract(Duration(days: 30));
+  //         break;
+  //     }
+  //     _fetchBloodOxygenData();
+  //   });
+  // }
+
+  // void _nextPeriod() {
+  //   setState(() {
+  //     switch (_tabController?.index) {
+  //       case 0:
+  //         _startDate = _startDate.add(Duration(days: 1));
+  //         break;
+  //       case 1:
+  //         _startDate = _startDate.add(Duration(days: 7));
+  //         break;
+  //       case 2:
+  //         _startDate = _startDate.add(Duration(days: 30));
+  //         break;
+  //     }
+  //     _fetchBloodOxygenData();
+  //   });
+  // }
+
+  // String _getDateRangeString() {
+  //   switch (_tabController?.index) {
+  //     case 0:
+  //       return _hourlyDates.isNotEmpty
+  //           ? "${_hourlyDates.first.day} ${_hourlyDates.first.month}'${_hourlyDates.first.year.toString().substring(2)}"
+  //           : "No data available";
+  //     case 1:
+  //       return _dates7Days.isNotEmpty
+  //           ? "${_dates7Days.first.day} ${_dates7Days.first.month}'${_dates7Days.first.year.toString().substring(2)} - ${_dates7Days.last.day} ${_dates7Days.last.month}'${_dates7Days.last.year.toString().substring(2)}"
+  //           : "No data available";
+  //     case 2:
+  //       return _dates30Days.isNotEmpty
+  //           ? "${_dates30Days.first.day} ${_dates30Days.first.month}'${_dates30Days.first.year.toString().substring(2)} - ${_dates30Days.last.day} ${_dates30Days.last.month}'${_dates30Days.last.year.toString().substring(2)}"
+  //           : "No data available";
+  //     default:
+  //       return "No data available";
+  //   }
+  // }
+
   @override
   Widget build(BuildContext context) {
+    // String dateRange = _getDateRangeString();
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -139,6 +196,12 @@ class _BloodOxygenDetailScreenState extends State<BloodOxygenDetailScreen>
                 width: MediaQuery.sizeOf(context).width,
                 child: Column(
                   children: [
+                    // DateRow(
+                    //   dateRange: dateRange,
+                    //   onPrevious: _previousPeriod,
+                    //   onNext: _nextPeriod,
+                    //   fontSize: 16, // Adjust the font size as needed
+                    // ),
                     Expanded(
                       child: TabBarView(
                         controller: _tabController,

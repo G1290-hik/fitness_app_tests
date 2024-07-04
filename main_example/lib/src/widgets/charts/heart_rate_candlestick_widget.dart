@@ -25,7 +25,7 @@ class CandleStickChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: is7DayChart ? 1 : 1.2,
+      aspectRatio: is7DayChart ? 1.399 : 1,
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

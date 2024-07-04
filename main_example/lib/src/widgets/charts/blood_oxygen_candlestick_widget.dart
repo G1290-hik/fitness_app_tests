@@ -25,7 +25,7 @@ class O2CandleStickChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: is7DayChart ? 1 : 1.2,
+      aspectRatio: is7DayChart ? 1.399 : 1,
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -46,7 +46,7 @@ class O2CandleStickChart extends StatelessWidget {
                     double minValue = minHeartRates[group.x.toInt()];
                     double maxValue = maxHeartRates[group.x.toInt()];
                     return BarTooltipItem(
-                      '${DateFormat('d MMM').format(date)}\nMax O2%: $maxValue\nMin O2%: $minValue',
+                      '${DateFormat('d MMM').format(date)}\nMax O2%: ${maxValue.toStringAsFixed(0)}\nMin O2%: ${minValue.toStringAsFixed(0)}',
                       TextStyle(
                           color: AppColors.mainTextColor1,
                           fontWeight: FontWeight.bold),

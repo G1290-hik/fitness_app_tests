@@ -104,7 +104,7 @@ class HealthAddPageState extends State<HealthAddPage> {
         appBarTitle = 'Add Sleep Data';
         break;
       default:
-        body = const Center(child: Text('Welcome to My Stateful Screen!'));
+        body = const Center(child: Text('Retry'));
     }
 
     return Scaffold(

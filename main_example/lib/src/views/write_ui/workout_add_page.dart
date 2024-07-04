@@ -1,5 +1,6 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:health_example/src/utils/theme.dart';
 
 class WorkoutAddPage extends StatefulWidget {
   const WorkoutAddPage({super.key});
@@ -90,13 +91,16 @@ class WorkoutAddPageState extends State<WorkoutAddPage> {
         appBarTitle = 'Add Strength Workout';
         break;
       default:
-        body = const Center(child: Text('Welcome to My Stateful Screen!'));
+        body = const Center(child: Text('Retry'));
     }
 
     return Scaffold(
+      backgroundColor: AppColors.pageBackground,
       appBar: AppBar(
+        backgroundColor: AppColors.pageBackground,
         title: Text(
           appBarTitle,
+          style: TextStyle(color: AppColors.mainTextColor1),
         ),
       ),
       body: body,
