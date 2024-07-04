@@ -143,7 +143,10 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen>
           ),
         ),
         body: _isLoading
-            ? Center(child: CircularProgressIndicator(color: AppColors.contentColorWhite,))
+            ? Center(
+                child: CircularProgressIndicator(
+                color: AppColors.contentColorWhite,
+              ))
             : SizedBox(
                 height: MediaQuery.sizeOf(context).height,
                 width: MediaQuery.sizeOf(context).width,
@@ -155,6 +158,7 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen>
                         children: [
                           // 1-day chart
                           SingleDayHeartRateLineChart(
+                            isO2: false,
                             fontSize: 10,
                             interval: 2,
                             minHeartRateValues: _hourlyHeartRatesMin,
@@ -169,6 +173,7 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen>
                             interval: 1,
                             width: 8,
                             font: 8,
+                            isO2: false,
                           ),
                           // 30-day chart
                           DaySummary(
@@ -178,6 +183,7 @@ class _HeartRateDetailScreenState extends State<HeartRateDetailScreen>
                             interval: 5,
                             width: 5,
                             font: 8,
+                            isO2: false,
                           ),
                         ],
                       ),

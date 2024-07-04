@@ -161,6 +161,16 @@ class HealthService {
         (values) => values.reduce((a, b) => a > b ? a : b));
   }
 
+  Future<double> getMinBloodOxygen(DateTime startTime, DateTime endTime) async {
+    return await aggregateData([HealthDataType.BLOOD_OXYGEN], startTime,
+        endTime, (values) => values.reduce((a, b) => a < b ? a : b));
+  }
+
+  Future<double> getMaxBloodOxygen(DateTime startTime, DateTime endTime) async {
+    return await aggregateData([HealthDataType.BLOOD_OXYGEN], startTime,
+        endTime, (values) => values.reduce((a, b) => a > b ? a : b));
+  }
+
   Future<double> getCaloriesBurnt(DateTime startTime, DateTime endTime) async {
     return await aggregateData([HealthDataType.TOTAL_CALORIES_BURNED],
         startTime, endTime, (values) => values.reduce((a, b) => a + b));
@@ -286,11 +296,33 @@ class HealthService {
     }
   }
 
+  Future<double> getLatestBloodOxygen(
+      DateTime startTime, DateTime endTime) async {
+    List<HealthDataPoint> bloodOxygendata =
+        await getBloodOxygen(startTime, endTime);
+
+    if (bloodOxygendata.isNotEmpty) {
+      final latestBloodOxygenPoint = bloodOxygendata.last;
+      if (latestBloodOxygenPoint.value is NumericHealthValue) {
+        return (latestBloodOxygenPoint.value as NumericHealthValue)
+            .numericValue
+            .toDouble();
+      } else {
+        throw TypeError();
+      }
+    } else {
+      print("No blood oxygen data available");
+      return 0.0;
+    }
+  }
+
   Future<List<HealthDataPoint>> fetchSleepData(
       List<HealthDataType> types, DateTime startTime, DateTime endTime) async {
     return await fetchData(types, startTime, endTime);
   }
-  Future<List<HealthDataPoint>> checkSleepData(DateTime startTime, DateTime endTime) async {
+
+  Future<List<HealthDataPoint>> checkSleepData(
+      DateTime startTime, DateTime endTime) async {
     List<HealthDataType> sleepTypes = [
       HealthDataType.SLEEP_SESSION,
     ];
@@ -396,25 +428,83 @@ class HealthService {
       'diastolic': latestDiastolic,
     };
   }
-  Future<double> getLatestSystolicBP(DateTime startTime, DateTime endTime) async {
-    List<HealthDataPoint> systolicData = await getSystolicBP(startTime, endTime);
+
+  Future<double> getLatestSystolicBP(
+      DateTime startTime, DateTime endTime) async {
+    List<HealthDataPoint> systolicData =
+        await getSystolicBP(startTime, endTime);
 
     if (systolicData.isNotEmpty) {
-      return (systolicData.last.value as NumericHealthValue).numericValue.toDouble();
+      return (systolicData.last.value as NumericHealthValue)
+          .numericValue
+          .toDouble();
     } else {
       print("No systolic blood pressure data available");
       return 0.0;
     }
   }
 
-  Future<double> getLatestDiastolicBP(DateTime startTime, DateTime endTime) async {
-    List<HealthDataPoint> diastolicData = await getDiastolicBP(startTime, endTime);
+  Future<double> getLatestDiastolicBP(
+      DateTime startTime, DateTime endTime) async {
+    List<HealthDataPoint> diastolicData =
+        await getDiastolicBP(startTime, endTime);
 
     if (diastolicData.isNotEmpty) {
-      return (diastolicData.last.value as NumericHealthValue).numericValue.toDouble();
+      return (diastolicData.last.value as NumericHealthValue)
+          .numericValue
+          .toDouble();
     } else {
       print("No diastolic blood pressure data available");
       return 0.0;
     }
+  }
+
+  Future<void> addBloodOxygenData(
+      DateTime startTime, DateTime endTime, double value) async {
+    bool success = await Health().writeHealthData(
+      value: value,
+      type: HealthDataType.BLOOD_OXYGEN,
+      startTime: startTime,
+      endTime: endTime,
+    );
+    if (success) {
+      print("Blood oxygen data added successfully");
+    } else {
+      print("Failed to add blood oxygen data");
+    }
+  }
+
+  Future<void> addBloodOxygenSession(
+      DateTime startTime, DateTime endTime) async {
+    double bloodOxygenLevel = 0;
+    await addBloodOxygenData(startTime, endTime, bloodOxygenLevel);
+  }
+
+  Future<void> addBloodOxygenMonthly(
+      DateTime startTime, DateTime endTime) async {
+    for (int i = 0; i < 30; i++) {
+      DateTime start = startTime.subtract(Duration(days: i));
+      DateTime end = endTime.subtract(Duration(days: i));
+      await addBloodOxygenSession(start, end);
+    }
+  }
+
+  Future<void> deleteBloodOxygenData(
+      DateTime startTime, DateTime endTime) async {
+    bool success = await Health().delete(
+      type: HealthDataType.BLOOD_OXYGEN,
+      startTime: startTime,
+      endTime: endTime,
+    );
+    if (success) {
+      print("Blood oxygen data deleted successfully");
+    } else {
+      print("Failed to delete blood oxygen data");
+    }
+  }
+
+  Future<List<HealthDataPoint>> getBloodOxygen(
+      DateTime startTime, DateTime endTime) async {
+    return await fetchData([HealthDataType.BLOOD_OXYGEN], startTime, endTime);
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:health_example/src/views/sleep_details_screen.dart';
 import 'package:health_example/src/utils/theme.dart';
+import 'package:health_example/src/views/blood_oxygen_details_view.dart';
+import 'package:health_example/src/views/sleep_details_screen.dart';
 import 'package:health_example/src/views/view.dart';
 
 class VitalsDetailCard extends StatelessWidget {
@@ -38,7 +39,7 @@ class VitalsDetailCard extends StatelessWidget {
               Text(
                 title.toUpperCase(),
                 style: const TextStyle(
-                  fontSize:18,
+                  fontSize: 18,
                   color: AppColors.mainTextColor2,
                   fontWeight: FontWeight.bold,
                 ),
@@ -87,7 +88,6 @@ class VitalsDetailGridBox extends StatelessWidget {
     final int hours = sleepDuration ~/ 60;
     final double minutes = sleepDuration % 60;
 
-
     return GridView.count(
       crossAxisCount: 2,
       crossAxisSpacing: 4.0,
@@ -98,7 +98,7 @@ class VitalsDetailGridBox extends StatelessWidget {
         VitalsDetailCard(
           title: 'Blood Pressure',
           value:
-          '${vitalsData['systolic']?.toStringAsFixed(0) ?? '0'} / ${vitalsData['diastolic']?.toStringAsFixed(0) ?? '0'}',
+              '${vitalsData['systolic']?.toStringAsFixed(0) ?? '0'} / ${vitalsData['diastolic']?.toStringAsFixed(0) ?? '0'}',
           unit: ' mmHg',
           screen: BloodPressureDetailScreen(),
         ),
@@ -114,6 +114,11 @@ class VitalsDetailGridBox extends StatelessWidget {
           unit: '',
           screen: SleepDetailScreen(), // Add a screen for detailed sleep view
         ),
+        VitalsDetailCard(
+            title: 'Blood Oxygen',
+            value: '${vitalsData['bloodoxygen']?.toStringAsFixed(1) ?? '0'}',
+            unit: '%',
+            screen: BloodOxygenDetailScreen())
       ],
     );
   }

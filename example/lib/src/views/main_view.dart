@@ -4,6 +4,7 @@ import 'package:health_example/src/service/health_service.dart';
 import 'package:health_example/src/utils/theme.dart';
 import 'package:health_example/src/widgets/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'edit_goals_screen.dart';
 
@@ -29,7 +30,8 @@ class _MainViewState extends State<MainView> {
   Future<void> _fetchData() async {
     try {
       DateTime now = DateTime.now();
-      DateTime startTime = now.subtract(Duration(days: 1));
+      DateTime startTime = DateTime(now.year, now.month, now.day, 0, 0,
+          1); // Start of the current day at 00:00:01
       DateTime endTime = now;
 
       debugPrint('Fetching current day data...');
@@ -54,6 +56,11 @@ class _MainViewState extends State<MainView> {
       double latestHr =
           await _healthService.getLatestHeartRate(startTime, endTime);
       debugPrint('Heart rate data fetched: $latestHr');
+
+      debugPrint('Fetching latest blood oxygen data...');
+      double latestO2 =
+          await _healthService.getLatestBloodOxygen(startTime, endTime);
+      debugPrint('Blood Oxygen data fetched: $latestO2');
 
       debugPrint('Fetching latest sleep data...');
       List<HealthDataPoint> sleepData =
@@ -81,6 +88,8 @@ class _MainViewState extends State<MainView> {
           'heartRateTime': endTime,
           'sleepDuration': totalSleepDuration,
           'sleepTime': endTime,
+          'bloodoxygen': latestO2,
+          'bloodoxygenTime': endTime,
         };
         debugPrint(
             'Data fetched, steps=$steps, calories=$calories, distance=$distance, systolicBP=$latestSystolicBP, diastolicBP=$latestDiastolicBP, heartRate=$latestHr, sleep=$totalSleepDuration');
@@ -93,7 +102,17 @@ class _MainViewState extends State<MainView> {
   @override
   void initState() {
     super.initState();
+    _loadGoals();
     _initialLoad = _fetchData();
+  }
+
+  Future<void> _loadGoals() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _goalSteps = prefs.getDouble('goalSteps') ?? 10000;
+      _goalCalories = prefs.getDouble('goalCalories') ?? 5000;
+      _goalDistance = prefs.getDouble('goalDistance') ?? 10;
+    });
   }
 
   List<String> _getWeekDays() {
@@ -106,12 +125,16 @@ class _MainViewState extends State<MainView> {
     return weekDays;
   }
 
-  void _editGoals(Map<String, double> newGoals) {
+  void _editGoals(Map<String, double> newGoals) async {
+    final prefs = await SharedPreferences.getInstance();
     setState(() {
       _goalSteps = newGoals['walkSteps']!;
       _goalCalories = newGoals['burnKcals']!;
       _goalDistance = newGoals['coverDistance']!;
     });
+    await prefs.setDouble('goalSteps', _goalSteps);
+    await prefs.setDouble('goalCalories', _goalCalories);
+    await prefs.setDouble('goalDistance', _goalDistance);
   }
 
   @override

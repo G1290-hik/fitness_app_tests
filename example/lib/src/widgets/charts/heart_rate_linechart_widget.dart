@@ -9,6 +9,7 @@ class SingleDayHeartRateLineChart extends StatelessWidget {
   final List<DateTime> dates;
   final double fontSize;
   final double interval;
+  final bool isO2;
 
   SingleDayHeartRateLineChart({
     required this.fontSize,
@@ -16,6 +17,7 @@ class SingleDayHeartRateLineChart extends StatelessWidget {
     required this.minHeartRateValues,
     required this.maxHeartRateValues,
     required this.dates,
+    required this.isO2,
   });
 
   @override
@@ -107,7 +109,9 @@ class SingleDayHeartRateLineChart extends StatelessWidget {
                     return FlSpot(index.toDouble(), minHeartRateValues[index]);
                   }),
                   isCurved: true,
-                  color: AppColors.contentColorPink,
+                  color: isO2
+                      ? AppColors.contentColorYellow
+                      : AppColors.contentColorPink,
                   barWidth: 4,
                   isStrokeCapRound: true,
                   dotData: FlDotData(show: false),
@@ -117,7 +121,9 @@ class SingleDayHeartRateLineChart extends StatelessWidget {
                     return FlSpot(index.toDouble(), maxHeartRateValues[index]);
                   }),
                   isCurved: true,
-                  color: AppColors.contentColorRed,
+                  color: isO2
+                      ? AppColors.contentColorGreen
+                      : AppColors.contentColorRed,
                   barWidth: 4,
                   isStrokeCapRound: true,
                   dotData: FlDotData(show: false),
